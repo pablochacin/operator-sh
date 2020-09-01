@@ -17,5 +17,33 @@ assert_output_contains "Missing argument"
 assert_output_contains "Object type"
 assert_output_contains "Usage"
 
+#test object type is parsed
+MY_OBJECT="my-object"
+test "parse_args -o $MY_OBJECT"
+assert_command_rc 0
+assert_output_contains "OBJECT_TYPE=$MY_OBJECT" 
+
+#test queue name is parsed
+QUEUE_NAME="/tmp/$(uuidgen)"
+test "parse_args -o my-object --queue $QUEUE_NAME"
+assert_command_rc 0
+assert_output_contains "EVENT_QUEUE=$QUEUE_NAME"
+
+#test default queue is created
+eval $(parse_args -o OBJECT)
+assert_not_null $EVENT_QUEUE
+test "create_queue"
+assert_command_rc 0
+assert_file_exists $EVENT_QUEUE
+
+#test queue with given name is created
+QUEUE_NAME="/tmp/queue-$(uuidgen)"
+eval $(parse_args -o OBJECT -q $QUEUE_NAME)
+assert_not_null $EVENT_QUEUE
+test "create_queue"
+assert_command_rc 0
+assert_file_exists $QUEUE_NAME
+rm -f $QUEUE_NAME
+
 echo "succeeded"
 
