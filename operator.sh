@@ -1,16 +1,9 @@
 #!/bin/bash
 
-# Parameters
-NAMESPACE=
-OBJECT_TYPE=
-CHANGES_ONLY=
-EVENT_QUEUE="/tmp/k8s-event-queue"
-RESET_QUEUE=false
-
 
 function usage(){
 
-cat <<EOF
+cat <<EOF 
     Watch for events and process them using scripts
 
     Usage: $0 [OPTIONS...]
@@ -58,6 +51,13 @@ function create_queue(){
 
 # Parse command line arguments
 function parse_args(){
+    CHANGES_ONLY=false
+    EVENT_QUEUE="/tmp/k8s-event-queue"
+    RESET_QUEUE=false
+    KUBECONFIG=$KUBECONFIG
+    NAMESPACE=
+    OBJECT_TYPE=
+
     while [[ $# != 0 ]] ; do
         case $1 in
             -c|--changes-only)
@@ -83,12 +83,12 @@ function parse_args(){
                 RESET_QUEUE=true
                 ;;
             -h|--help)
-                usage
+                echo $(usage) >&2
                 exit 0
                 ;;
             *)
-                echo "Error: Invalid parameter ${1}"
-                usage
+                echo "Error: Invalid parameter ${1}" >&2
+                echo $(usage) >&2
                 exit 1
                 ;;
         esac
@@ -96,16 +96,25 @@ function parse_args(){
     done
 
     if [[ -z $OBJECT_TYPE ]]; then
-        echo "Missing argument: Object type must be specified"
-        usage
+        echo "Missing argument: Object type must be specified" >&2
+        echo $(usage) >&2
         exit 1
-    fi
+   fi
+        
+    echo "OBJECT_TYPE=$OBJECT_TYPE"
+    echo "CHANGES_ONLY=$CHANGES_ONLY"
+    echo "EVENT_QUEUE=$EVENT_QUEUE"
+    echo "RESET_QUEUE=$RESET_QUEUE"
+    echo "NAMESPACE=$NAMESPACE"
+    echo "KUBECONFIG=$KUBECONFIG"
+
 }
 
 # main logic
 function main(){
 
-    parse_args $@
+    # parse arguments returned by the parse_args function
+    eval $(parse_args $@)
 
     create_queue
 
