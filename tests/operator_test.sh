@@ -29,6 +29,28 @@ test "parse_args -o my-object --queue $QUEUE_NAME"
 assert_command_rc 0
 assert_output_contains "EVENT_QUEUE=$QUEUE_NAME"
 
+#test namespace is parsed
+MY_NAMESPACE
+test "parse_args -o my-object -n $MY_NAMESPACE"
+assert_command_rc 0
+assert_output_contains "NAMESPACE=$MY_NAMESPACE"
+
+#test kubeconfig is parsed
+MY_KUBECONFIG="/path/to/my/kubeconfig"
+test "parse_args -o my-object -k $MY_KUBECONFIG"
+assert_command_rc 0
+assert_output_contains "KUBECONFIG=$MY_KUBECONFIG"
+
+#test changes-only is parsed
+test "parse_args -o my-object --changes-only"
+assert_command_rc 0
+assert_output_contains "CHANGES_ONLY=true"
+
+#test reset-queuw is parsed
+test "parse_args -o my-object --reset-queue"
+assert_command_rc 0
+assert_output_contains "RESET_QUEUE=true"
+
 #test default queue is created
 eval $(parse_args -o OBJECT)
 assert_not_null $EVENT_QUEUE
