@@ -13,6 +13,8 @@ function usage(){
 cat <<EOF
     Watch for events and process them using scripts
 
+    Usage: $0 [OPTIONS...]
+
     Options
     -k,--kubeconfig: path to kubeconfig file for accessing Kubernetes cluster
     -n,--namespace: namespace to watch (optional)
@@ -81,12 +83,12 @@ function parse_args(){
                 RESET_QUEUE=true
                 ;;
             -h|--help)
-                echo "$usage"
+                usage
                 exit 0
                 ;;
             *)
-                echo "Error: Invalid parameter ${2}"
-                echo "${usage}"
+                echo "Error: Invalid parameter ${1}"
+                usage
                 exit 1
                 ;;
         esac
@@ -95,7 +97,7 @@ function parse_args(){
 
     if [[ -z $OBJECT_TYPE ]]; then
         echo "Object type must be specified"
-        echo "$usage"
+        usage
         exit 1
     fi
 }
