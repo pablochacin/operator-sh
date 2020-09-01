@@ -85,7 +85,7 @@ function parse_args(){
                 exit 0
                 ;;
             *)
-                echo "invalid parameter ${2}"
+                echo "Error: Invalid parameter ${2}"
                 echo "${usage}"
                 exit 1
                 ;;
@@ -101,11 +101,19 @@ function parse_args(){
 }
 
 # main logic
-parse_args $@
+function main(){
 
-create_queue
+    parse_args $@
 
-# start sub-process and wait
-watch &
-process &
-wait
+    create_queue
+
+    # start sub-process and wait
+    watch &
+    process &
+    wait
+}
+
+## if sourced, do not execute main logic
+if [ "${BASH_SOURCE[0]}" == "$0" ]; then
+    main $@
+fi
