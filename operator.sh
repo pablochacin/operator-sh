@@ -96,7 +96,7 @@ function parse_args(){
     done
 
     if [[ -z $OBJECT_TYPE ]]; then
-        echo "Object type must be specified"
+        echo "Missing argument: Object type must be specified"
         usage
         exit 1
     fi
