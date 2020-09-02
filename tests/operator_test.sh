@@ -51,6 +51,18 @@ Test "parse_args -o my-object --reset-queue"
 assert_command_rc 0
 assert_output_contains "RESET_QUEUE=true"
 
+# Test log-events is parsed
+Test "parse_args -o my-object --log-events"
+assert_command_rc 0
+assert_output_contains "LOG_EVENTS=true"
+
+# Test log-file is parsed
+set -x
+LOG_FILE="/path/to/log/file"
+Test "parse_args -o my-object --log-file $LOG_FILE"
+assert_command_rc 0
+assert_output_contains "LOG_FILE=$LOG_FILE"
+
 # Test default queue is created
 eval $(parse_args -o OBJECT)
 assert_not_null $EVENT_QUEUE

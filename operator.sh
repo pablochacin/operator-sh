@@ -9,6 +9,8 @@ cat <<EOF
     Usage: $0 [OPTIONS...]
 
     Options
+    -e,--log-events: log received events to log file
+    -l,--log-file: path to the log
     -k,--kubeconfig: path to kubeconfig file for accessing Kubernetes cluster
     -n,--namespace: namespace to watch (optional)
     -o,--object: type of object to watch
@@ -31,8 +33,11 @@ function watch(){
 
 # Process events
 function process(){
+
     while read EVENT < $EVENT_QUEUE ; do 
-        echo "$(date +'x%y-%m-%d %H:%m:%S') $EVENT" >> /tmp/k8s-events.log
+        if $LOG_EVENTS; then
+            echo "$(date +'%y-%m-%d %H:%m:%S') $EVENT" >> $LOG_FILE
+        fi
     done  
 }
 
@@ -56,11 +61,20 @@ function parse_args(){
     KUBECONFIG=$KUBECONFIG
     NAMESPACE=
     OBJECT_TYPE=
+    LOG_EVENTS=false
+    LOG_FILE="/tmp/k8s-events.log"
 
     while [[ $# != 0 ]] ; do
         case $1 in
             -c|--changes-only)
                 CHANGES_ONLY=true
+                ;;
+            -e|--log-events)
+                LOG_EVENTS=true
+                ;;
+            -l|--log-file)
+                LOG_FILE=$2
+                shift
                 ;;
             -k|--kubeconfig)
                 KUBECONFIG=$2
@@ -98,7 +112,7 @@ function parse_args(){
         echo "Missing argument: Object type must be specified" >&2
         echo $(usage) >&2
         exit 1
-   fi
+    fi
         
     echo "OBJECT_TYPE=$OBJECT_TYPE"
     echo "CHANGES_ONLY=$CHANGES_ONLY"
@@ -106,6 +120,8 @@ function parse_args(){
     echo "RESET_QUEUE=$RESET_QUEUE"
     echo "NAMESPACE=$NAMESPACE"
     echo "KUBECONFIG=$KUBECONFIG"
+    echo "LOG_EVENTS=$LOG_EVENTS"
+    echo "LOG_FILE=$LOG_FILE"
 
 }
 
@@ -114,6 +130,11 @@ function main(){
 
     # parse arguments returned by the parse_args function
     eval $(parse_args $@)
+
+    # Ensure the log file exits to facilitate tail -f it
+    if [[ ! -e $LOG_FILE ]]; then
+        touch $LOG_FILE
+    fi
 
     create_queue
 
