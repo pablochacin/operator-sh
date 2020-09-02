@@ -21,11 +21,10 @@ EOF
 }
 
 # Watch events in k8s 
-# TODO: re-start watch after 5m timeout
 function watch(){
     local NS_FLAG=${NAMESPACE:+"-n ${NAMESPACE}"}
-    local WATCH_ONLY_FLAG=${CHANGES_ONLY:+"--watch-only"}
-    local KUBECONFIG_FLAF=${KUBECONFIG:+"--kubeconfig $KUBECONFIG"}
+    local WATCH_ONLY_FLAG=$(if $CHANGES_ONLY; then echo "--watch-only"; fi)
+    local KUBECONFIG_FLAG=${KUBECONFIG:+"--kubeconfig $KUBECONFIG"}
 
     kubectl $KUBECONFIG_FLAG get $OBJECT_TYPE --watch -o json --output-watch-events $NS_FLAG $WATCH_ONLY_FLAG >> $EVENT_QUEUE 
 }
@@ -49,7 +48,7 @@ function create_queue(){
     fi
 }
 
-# Parse command line arguments
+# Parse command line arguments 
 function parse_args(){
     CHANGES_ONLY=false
     EVENT_QUEUE="/tmp/k8s-event-queue"
