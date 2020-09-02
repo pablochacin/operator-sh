@@ -31,6 +31,35 @@ function assert_equals(){
     fi
 }
 
+# assert that the actual value $2 is not equals the expected value $1
+function assert_not_equals(){
+    if [[ "$1" == "$2" ]]; then
+        echo "[$(caller)] Assertion failed: expected $1 actual $2"
+        exit 1
+    fi
+}
+
+# assert that the actual value $3 and the expected value $1 satisfy a certain condition given in $2.  
+# 
+# Examples assert_condition $EXPECTED "gt" $ACTUAL"
+function assert_condition(){
+    ASSERT_OUTPUT=$(test "$1" "$2" "$3")
+    ASSERT_RC=$?
+    case $ASSERT_RC in
+        0)
+            return
+            ;;
+        1)
+            echo "[$(caller)] Assertion failed: $1 $2 $3"
+            exit 1
+            ;;
+        *)
+            echo "[$(caller)] Assertion evaluation error: $ASSERT_OUTPUT"
+            exit 1
+            ;;
+    esac
+}
+
 # assert that the actual value $1 is not null
 function assert_not_null(){
     if [[ -z "$1" ]]; then
