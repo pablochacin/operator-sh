@@ -3,62 +3,62 @@
 source ../lib/test.sh
 source ../operator.sh
 
-#test invalid argument option
+# Test invalid argument option
 test "parse_args --invalid-option"
 assert_command_rc 1
 assert_output_contains "Invalid parameter"
 assert_output_contains "--invalid-option"
 assert_output_contains "Usage"
 
-#test missing required argument
+# Test missing required argument
 test "parse_args"
 assert_command_rc 1
 assert_output_contains "Missing argument"
 assert_output_contains "Object type"
 assert_output_contains "Usage"
 
-#test object type is parsed
+# Test object type is parsed
 MY_OBJECT="my-object"
 test "parse_args -o $MY_OBJECT"
 assert_command_rc 0
 assert_output_contains "OBJECT_TYPE=$MY_OBJECT" 
 
-#test queue name is parsed
+# Test queue name is parsed
 QUEUE_NAME="/tmp/$(uuidgen)"
 test "parse_args -o my-object --queue $QUEUE_NAME"
 assert_command_rc 0
 assert_output_contains "EVENT_QUEUE=$QUEUE_NAME"
 
-#test namespace is parsed
+# Test namespace is parsed
 MY_NAMESPACE
 test "parse_args -o my-object -n $MY_NAMESPACE"
 assert_command_rc 0
 assert_output_contains "NAMESPACE=$MY_NAMESPACE"
 
-#test kubeconfig is parsed
+# Test kubeconfig is parsed
 MY_KUBECONFIG="/path/to/my/kubeconfig"
 test "parse_args -o my-object -k $MY_KUBECONFIG"
 assert_command_rc 0
 assert_output_contains "KUBECONFIG=$MY_KUBECONFIG"
 
-#test changes-only is parsed
+# Test changes-only is parsed
 test "parse_args -o my-object --changes-only"
 assert_command_rc 0
 assert_output_contains "CHANGES_ONLY=true"
 
-#test reset-queuw is parsed
+# Test reset-queuw is parsed
 test "parse_args -o my-object --reset-queue"
 assert_command_rc 0
 assert_output_contains "RESET_QUEUE=true"
 
-#test default queue is created
+# Test default queue is created
 eval $(parse_args -o OBJECT)
 assert_not_null $EVENT_QUEUE
 test "create_queue"
 assert_command_rc 0
 assert_file_exists $EVENT_QUEUE
 
-#test queue with given name is created
+# Test queue with given name is created
 QUEUE_NAME="/tmp/queue-$(uuidgen)"
 eval $(parse_args -o OBJECT -q $QUEUE_NAME)
 assert_not_null $EVENT_QUEUE
