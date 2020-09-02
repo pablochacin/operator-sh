@@ -30,7 +30,7 @@ assert_command_rc 0
 assert_output_contains "EVENT_QUEUE=$QUEUE_NAME"
 
 # Test namespace is parsed
-MY_NAMESPACE
+MY_NAMESPACE="my-namespace"
 test "parse_args -o my-object -n $MY_NAMESPACE"
 assert_command_rc 0
 assert_output_contains "NAMESPACE=$MY_NAMESPACE"
