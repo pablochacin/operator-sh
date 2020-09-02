@@ -47,7 +47,7 @@ def main():
     event = json.load(sys.stdin)
     prefix = args.prefix.upper()
     for (k,v) in parse(event):
-        var_name = k.upper()
+        var_name = k.upper().replace("-","_")
         if args.no_status and var_name.startswith("OBJECT_STATUS"):
             continue
         if args.no_spec and var_name.startswith("OBJECT_SPEC"):
