@@ -57,7 +57,7 @@ function assert_file_does_not_exist(){
 
 
 # Executes the command passed as argument and captures the output and the rc
-function test(){
+function Test(){
     TEST_COMMAND="$1"
     TEST_OUTPUT=$($1 2>&1)
     TEST_RC=$?
