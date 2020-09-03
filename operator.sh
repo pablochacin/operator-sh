@@ -1,6 +1,6 @@
 #!/bin/bash
 
-
+# prints usage help
 function usage(){
 
 cat <<EOF 
@@ -9,9 +9,12 @@ cat <<EOF
     Usage: $0 [OPTIONS...]
 
     Options
+    -a,--added: path to handler for ADDED events
+    -d,--deleted: path to handler for DELETED events 
     -e,--log-events: log received events to log file
     -l,--log-file: path to the log
     -k,--kubeconfig: path to kubeconfig file for accessing Kubernetes cluster
+    -m,--modified: path to handler for MODIFIED events
     -n,--namespace: namespace to watch (optional)
     -o,--object: type of object to watch
     -q,--queue: queue to store events
@@ -28,17 +31,55 @@ function watch(){
     local WATCH_ONLY_FLAG=$(if $CHANGES_ONLY; then echo "--watch-only"; fi)
     local KUBECONFIG_FLAG=${KUBECONFIG:+"--kubeconfig $KUBECONFIG"}
 
-    kubectl $KUBECONFIG_FLAG get $OBJECT_TYPE --watch -o json --output-watch-events $NS_FLAG $WATCH_ONLY_FLAG >> $EVENT_QUEUE 
+    while true; do
+        kubectl $KUBECONFIG_FLAG get $OBJECT_TYPE --watch -o json --output-watch-events $NS_FLAG $WATCH_ONLY_FLAG >> $EVENT_QUEUE 
+    done
+
 }
 
-# Process events
+# get path to script relative to operator's launch script
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+# handles an event received as stdin 
+function handle_event(){
+
+   # parse event fields as environment variables
+   EVENT_ENV=$($SCRIPT_DIR/parse.py 2>>$LOG_FILE)
+
+   # execute handler in its own environment
+   (
+    export $EVENT_ENV
+
+    # select handler based on event type
+    # TODO: use an associative array to simplify logic and inderect variable substitution
+    HANDLER=${EVENT_TYPE//\"/}"_HANDLER"
+    HANDLER_SCRIPT=${!HANDLER}
+    if [[ ! -e $HANDLER_SCRIPT ]]; then
+        echo "No event handler exits for event $EVENT_TYPE. Ignoring." >> $LOG_FILE
+        return
+    fi
+
+    # Pass log file to allow handlers to append messages to the log
+    export "LOG_FILE=$LOG_FILE" 
+
+    # Pass kubeconfig to allow handles to interact with the cluster using kubectl
+    export "KUBECONFIG=$KUBECONFIG"
+
+    # execute handler
+    exec $HANDLER_SCRIPT
+    )
+}
+
+
+# Process events from events queue
 function process(){
 
-    while read EVENT < $EVENT_QUEUE ; do 
+    while read EVENT ; do 
         if $LOG_EVENTS; then
             echo "$(date +'%y-%m-%d %H:%m:%S') $EVENT" >> $LOG_FILE
         fi
-    done  
+        handle_event <<< $EVENT
+    done < $EVENT_QUEUE  
 }
 
 # Create a pipe for queuing observed events
@@ -63,11 +104,22 @@ function parse_args(){
     OBJECT_TYPE=
     LOG_EVENTS=false
     LOG_FILE="/tmp/k8s-events.log"
+    ADDED_HANDLER="hooks/added.sh"
+    MODIFIED_HANDLER="hooks/modified.sh"
+    DELETED_HANDLER="hooks/deleted.sh"
 
     while [[ $# != 0 ]] ; do
         case $1 in
+            -a|--added)
+                ADDED_HANDLER=$2
+                shift
+                ;;
             -c|--changes-only)
                 CHANGES_ONLY=true
+                ;;
+            -d|--deleted)
+                DELETED_HANDLER=$2
+                shift
                 ;;
             -e|--log-events)
                 LOG_EVENTS=true
@@ -78,6 +130,10 @@ function parse_args(){
                 ;;
             -k|--kubeconfig)
                 KUBECONFIG=$2
+                shift
+                ;;
+            -m|--modified)
+                MODIFIED_HANDLER=$2
                 shift
                 ;;
             -n|--namespace)
@@ -122,6 +178,9 @@ function parse_args(){
     echo "KUBECONFIG=$KUBECONFIG"
     echo "LOG_EVENTS=$LOG_EVENTS"
     echo "LOG_FILE=$LOG_FILE"
+    echo "ADDED_HANDLER=$ADDED_HANDLER"
+    echo "MODIFIED_HANDLER=$MODIFIED_HANDLER"
+    echo "DELETED_HANDLER=$DELETED_HANDLER"
 
 }
 
@@ -140,7 +199,7 @@ function main(){
 
     # start sub-process and wait
     watch &
-    process &
+    process & 
     wait
 }
 
