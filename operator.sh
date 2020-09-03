@@ -154,7 +154,7 @@ function parse_args(){
                 ;;
             -h|--help)
                 usage >&2
-                exit 0
+                exit 1
                 ;;
             *)
                 echo "Error: Invalid parameter ${1}" >&2
