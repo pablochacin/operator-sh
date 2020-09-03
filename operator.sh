@@ -4,6 +4,7 @@
 function usage(){
 
 cat <<EOF 
+    
     Watch for events and process them using scripts
 
     Usage: $0 [OPTIONS...]
@@ -152,12 +153,12 @@ function parse_args(){
                 RESET_QUEUE=true
                 ;;
             -h|--help)
-                echo $(usage) >&2
+                usage >&2
                 exit 0
                 ;;
             *)
                 echo "Error: Invalid parameter ${1}" >&2
-                echo $(usage) >&2
+                usage >&2
                 exit 1
                 ;;
         esac
@@ -166,10 +167,10 @@ function parse_args(){
 
     if [[ -z $OBJECT_TYPE ]]; then
         echo "Missing argument: Object type must be specified" >&2
-        echo $(usage) >&2
+        usage >&2
         exit 1
-    fi
-        
+    fi 
+
     echo "OBJECT_TYPE=$OBJECT_TYPE"
     echo "CHANGES_ONLY=$CHANGES_ONLY"
     echo "EVENT_QUEUE=$EVENT_QUEUE"
@@ -188,7 +189,11 @@ function parse_args(){
 function main(){
 
     # parse arguments returned by the parse_args function
-    eval $(parse_args $@)
+    ARGS=$(parse_args $@)
+    if [[ $? -ne 0 ]]; then
+        exit 1
+    fi
+    eval $ARGS
 
     # Ensure the log file exits to facilitate tail -f it
     if [[ ! -e $LOG_FILE ]]; then
