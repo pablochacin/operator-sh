@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import json
 import sys
 import argparse
@@ -44,7 +46,15 @@ def main():
                        help="filter specs from output")
     args = parser.parse_args()
 
-    event = json.load(sys.stdin)
+    event_str = sys.stdin.read()
+    event = None
+    try:
+        event = json.loads(event_str)
+    except Exception as ex:
+        print("Error processing json input:", file=sys.stderr)
+        print(event_str, file=sys.stderr)
+        raise ex
+
     prefix = args.prefix.upper()
     for (k,v) in parse(event):
         var_name = k.upper().replace("-","_")
