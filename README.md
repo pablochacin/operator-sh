@@ -286,6 +286,62 @@ EVENT_OBJECT_STATUS_STARTTIME="2020-09-02T14:18:46Z"
 ```
 </details>
 
+## Development
+
+### Testing
+
+The `operator-sh` is tested using a minimalistic testing framework defined in `lib/test.sh`. This framework provides some functions for executing commands and assert the results. In order to use these functions in your test, you must include them into your test script:
+
+```
+source ../lib/test.sh
+```
+
+The operator tests are defined under the `test` directory. The example below executes the `parse.py` command and verifies it properly parses the event into environment variables:
+
+```
+#!/bin/bash
+
+source ../lib/test.sh
+
+# Test default parsing with the event.json input
+Test "../parse.py" "event.json"
+assert_command_rc 0
+assert_output_contains "EVENT_TYPE="
+assert_equals 74 $(wc -l <<< $TEST_OUTPUT)
+```
+
+The framework can be also used to test functions in a script. For instance:
+
+```
+#!/bin/bash
+
+source ../lib/test.sh
+
+# include the operator source code
+source ../operator.sh
+
+# Test invalid argument option
+Test "parse_args --invalid-option"
+assert_command_rc 1
+assert_output_contains "Invalid parameter"
+assert_output_contains "--invalid-option"
+assert_output_contains "Usage"
+```
+
+However, in order to prevent the script's main logic to be executed when sourcing in into your test script, you can follow the convention of wrapping your main logic as shown below:
+
+```
+# main logic
+function main(){
+
+}
+
+## if sourced into another script, do not execute main logic
+if [ "${BASH_SOURCE[0]}" == "$0" ]; then
+    main $@
+fi
+```
+
 ## Road Map
 
 * Provide examples
