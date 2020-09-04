@@ -63,12 +63,18 @@ The operator process consists of two sub-processes:
 
 The events are transformed in a series of environment variables. This parser is adapted from the [k8s-operator](https://github.com/side8/k8s-operator). Consider the following json corresponding to the creation of a Pod:
 
+<details><summary>JSON for Pod `ADDED` event (click to display code)
+
 ```
 {
   "type":"ADDED",
    "object": {
       "apiVersion":"v1",
       "kind":"Pod",
+```
+</summary>
+
+```
       "metadata": {
          "creationTimestamp":"2020-09-02T14:18:46Z",
          "generateName":"nginx-554b9c67f9-",
@@ -189,16 +195,23 @@ The events are transformed in a series of environment variables. This parser is 
    }
  }
 ```
+</details>
 
 It will transformed to the environment variables shown bellow. Some aspects to highlight:
 * Every element is named prefixing the name of all of the elements to the root of the event
 * A prefix (by default, `EVENT` is added to each variable to prevent name collision with other existing variables
 * Elements of arrays are referenced by their position (index)
 
+<details><summary>Environment variables for Pod ADDED event (click to display code)
+
 ```
 EVENT_TYPE="ADDED"
 EVENT_OBJECT_APIVERSION="v1"
 EVENT_OBJECT_KIND="Pod"
+```
+</summary>
+
+```
 EVENT_OBJECT_METADATA_CREATIONTIMESTAMP="2020-09-02T14:18:46Z"
 EVENT_OBJECT_METADATA_GENERATENAME="nginx-554b9c67f9-"
 EVENT_OBJECT_METADATA_LABELS_APP="nginx"
@@ -271,6 +284,7 @@ EVENT_OBJECT_STATUS_PODIP="10.244.0.4"
 EVENT_OBJECT_STATUS_QOSCLASS="BestEffort"
 EVENT_OBJECT_STATUS_STARTTIME="2020-09-02T14:18:46Z"
 ```
+</details>
 
 ## Road Map
 
