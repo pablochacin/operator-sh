@@ -37,6 +37,94 @@ To achieve these goals, the `operator-sh` framework follows the design principle
 
 ```
 
+## Examples
+
+This section shows different examples of using `operator-sh` for automating cluster management with shell scripts.
+
+In the following examples we use [kind](https://github.com/kubernetes-sigs/kind) for running a local cluster. If you don't have it already installed, please check [installation instructions](https://kind.sigs.k8s.io/docs/user/quick-start/#installation).
+
+Unless explicitly stated, we assume you have created a default cluster. Please notice the exact output can vary depending on the version of `kind` you are using.
+
+```
+$ kind create cluster
+Creating cluster "kind" ...
+ ✓ Ensuring node image (kindest/node:v1.15.0) 🖼
+ ✓ Preparing nodes 📦 
+ ✓ Creating kubeadm config 📜 
+ ✓ Starting control-plane 🕹️ 
+ ✓ Installing CNI 🔌 
+ ✓ Installing StorageClass 💾 
+Cluster creation complete. You can now use the cluster with:
+
+export KUBECONFIG="$(kind get kubeconfig-path --name="kind")"
+kubectl cluster-info
+```
+
+Remember that when running the operator in any other terminal than the one on which you created the cluster, you must ensure the `kubeconfig` file is available to the operator or any other tool, such as `kubectl`.
+
+```
+$ export KUBECONFIG="$(kind get kubeconfig-path --name="kind")"
+```
+
+### Logging Pod creation
+
+In this example we will simply log each pod that is created. For doing so, we will use a simple script located in `examples/pods/added.sh` which logs every pod added event received:
+
+```
+#!/bin/bash
+echo "$(date +'%y-%m-%d %H:%m:%S') Processing event ${EVENT_TYPE} for object ${EVENT_OBJECT_KIND}/${EVENT_OBJECT_METADATA_NAME}" >> $LOG_FILE
+```
+
+1. In one terminal start the operator using the example script for monitoring pod creation at `examples/pods/added.sh`. Redirect the log to /tmp/operator-sh.log (default is located at `/var/log/operator-sh.log`)
+
+```
+$ ./operator.sh -o pod --hooks examples/pods -R -l /tmp/operator-sh.log
+```
+
+2. In another terminal, start watching the log 
+
+```
+$ tail -f /tmp/operator-sh.log
+```
+
+3. In another terminal, create a deployment with one replica
+
+```
+$ kubectl create deployment nginx --image nginx
+deployment.apps/nginx created
+
+```
+
+4. In the terminal on which you are tailing the log, you should see these messages:
+
+```
+20-09-04 22:09:12 Processing event "ADDED" for object "Pod"/"nginx-554b9c67f9-8m7qq"
+No event handler exits for event "MODIFIED". Ignoring.
+No event handler exits for event "MODIFIED". Ignoring.
+No event handler exits for event "MODIFIED". Ignoring.
+```
+
+Notice that as there is not hook for the `MODIFIED` event, these events are ignored by `operator-sh`
+
+5. Back in the `kubectl` terminal (on which you created the deployment) increase the number of replicas to create more pods:
+
+```
+$ kubectl scale deployment nginx --replicas 3
+```
+
+You should see these new messages in the log:
+
+```
+20-09-04 22:09:59 Processing event "ADDED" for object "Pod"/"nginx-554b9c67f9-xs4zz"
+20-09-04 22:09:59 Processing event "ADDED" for object "Pod"/"nginx-554b9c67f9-sjrsk"
+No event handler exits for event "MODIFIED". Ignoring.
+No event handler exits for event "MODIFIED". Ignoring.
+No event handler exits for event "MODIFIED". Ignoring.
+No event handler exits for event "MODIFIED". Ignoring.
+No event handler exits for event "MODIFIED". Ignoring.
+No event handler exits for event "MODIFIED". Ignoring.
+```
+
 ## Design
 
 The operator-sh framework architecture is described in the figure below
