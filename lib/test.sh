@@ -85,10 +85,15 @@ function assert_file_does_not_exist(){
 }
 
 
-# Executes the command passed as argument and captures the output and the rc
+# Executes the command passed as $1 and captures the output and the rc.
+# Optionally $2 specifies a file to be used as stdin for the command
+#
+# TODO: allow command pipes like 'cat input.txt | wc -l' as command
+#       Such pipes fail. Check how the command is executed in a subshell.
 function Test(){
+    TEST_INPUT=${2:-"/dev/null"}
     TEST_COMMAND="$1"
-    TEST_OUTPUT=$($1 2>&1)
+    TEST_OUTPUT=$($1 2>&1 < $TEST_INPUT)
     TEST_RC=$?
 }
 
