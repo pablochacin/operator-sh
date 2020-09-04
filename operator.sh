@@ -13,14 +13,15 @@ cat <<EOF
     -a,--added: name of the hook for ADDED events. Default is 'added.sh'
     -d,--deleted: name of hook for DELETED events. Default is 'deleted.sh'
     -e,--log-events: log received events to log file
-    -h,--hooks: path to hooks. Default is `./hooks`)
-    -l,--log-file: path to the log
+    -h,--hooks: path to hooks. Default is `./hooks`
+    -l,--log-file: path to the log. Default is /var/log/operator-sh.log
     -k,--kubeconfig: path to kubeconfig file for accessing Kubernetes cluster
     -m,--modified: name of the hook for MODIFIED events. Default is modified.sh'
     -n,--namespace: namespace to watch (optional)
     -o,--object: type of object to watch
     -q,--queue: queue to store events
     -r,--reset-queue: reset queue to delete any pending event from previous executions
+    -R,--reset-log: reset log delete messages from previous executions
     -h,--help: display this help
 
 EOF
@@ -85,7 +86,21 @@ function process(){
 }
 
 # Create a pipe for queuing observed events
-# Remove existing queue, if --reset-queue option was specified 
+# Remove existing queue, if the reset log option was specified 
+function create_log(){
+    # Reset log file
+    if [[ $RESET_LOG ]] && [[ -e $LOG_FILE ]]; then
+        rm -f $LOG_FILE
+    fi
+
+    # Ensure the log file exits to facilitate tail -f it
+    if [[ ! -e $LOG_FILE ]]; then
+        touch $LOG_FILE
+    fi
+}
+
+# Create a pipe for queuing observed events
+# Remove existing queue, if the reset queue option was specified 
 function create_queue(){
     if [[ $RESET_QUEUE ]]; then 
         rm -f $EVENT_QUEUE
@@ -101,11 +116,12 @@ function parse_args(){
     CHANGES_ONLY=false
     EVENT_QUEUE="/tmp/k8s-event-queue"
     RESET_QUEUE=false
+    RESET_LOG=false
     KUBECONFIG=$KUBECONFIG
     NAMESPACE=
     OBJECT_TYPE=
     LOG_EVENTS=false
-    LOG_FILE="/tmp/k8s-events.log"
+    LOG_FILE="/var/log/operator-sh.log"
     HOOKS="hooks"
     ADDED_HANDLER="added.sh"
     MODIFIED_HANDLER="modified.sh"
@@ -159,6 +175,9 @@ function parse_args(){
             -r|--reset-queue)
                 RESET_QUEUE=true
                 ;;
+            -R|--reset-log)
+                RESET_LOG=true
+                ;;
             --help)
                 usage >&2
                 exit 1
@@ -182,6 +201,7 @@ function parse_args(){
     echo "CHANGES_ONLY=$CHANGES_ONLY"
     echo "EVENT_QUEUE=$EVENT_QUEUE"
     echo "RESET_QUEUE=$RESET_QUEUE"
+    echo "RESET_LOG=$RESET_LOG"
     echo "NAMESPACE=$NAMESPACE"
     echo "KUBECONFIG=$KUBECONFIG"
     echo "LOG_EVENTS=$LOG_EVENTS"
@@ -203,10 +223,7 @@ function main(){
     fi
     eval $ARGS
 
-    # Ensure the log file exits to facilitate tail -f it
-    if [[ ! -e $LOG_FILE ]]; then
-        touch $LOG_FILE
-    fi
+    create_log
 
     create_queue
 

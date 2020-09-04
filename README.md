@@ -25,13 +25,14 @@ To achieve these goals, the `operator-sh` framework follows the design principle
     -d,--deleted: name of hook for DELETED events. Default is 'deleted.sh'
     -e,--log-events: log received events to log file
     -h,--hooks: path to hooks. Default is `./hooks`
-    -l,--log-file: path to the log
+    -l,--log-file: path to the log. Default is /var/log/operator-sh.log
     -k,--kubeconfig: path to kubeconfig file for accessing Kubernetes cluster
     -m,--modified: name of the hook for MODIFIED events. Default is modified.sh'
     -n,--namespace: namespace to watch (optional)
     -o,--object: type of object to watch
     -q,--queue: queue to store events
     -r,--reset-queue: reset queue to delete any pending event from previous executions
+    -R,--reset-log: reset log delete messages from previous executions
     -h,--help: display this help
 
 ```
