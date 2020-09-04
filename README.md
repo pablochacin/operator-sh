@@ -21,17 +21,19 @@ To achieve these goals, the `operator-sh` framework follows the design principle
     Usage: ./operator.sh [OPTIONS...]
 
     Options
-    -a,--added: path to handler for ADDED events
-    -d,--deleted: path to handler for DELETED events 
+    -a,--added: name of the hook for ADDED events. Default is 'added.sh'
+    -d,--deleted: name of hook for DELETED events. Default is 'deleted.sh'
     -e,--log-events: log received events to log file
+    -h,--hooks: path to hooks. Default is `./hooks`
     -l,--log-file: path to the log
     -k,--kubeconfig: path to kubeconfig file for accessing Kubernetes cluster
-    -m,--modified: path to handler for MODIFIED events
+    -m,--modified: name of the hook for MODIFIED events. Default is modified.sh'
     -n,--namespace: namespace to watch (optional)
     -o,--object: type of object to watch
     -q,--queue: queue to store events
     -r,--reset-queue: reset queue to delete any pending event from previous executions
     -h,--help: display this help
+
 ```
 
 ## Design

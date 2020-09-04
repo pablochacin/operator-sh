@@ -10,12 +10,13 @@ cat <<EOF
     Usage: $0 [OPTIONS...]
 
     Options
-    -a,--added: path to handler for ADDED events
-    -d,--deleted: path to handler for DELETED events 
+    -a,--added: name of the hook for ADDED events. Default is 'added.sh'
+    -d,--deleted: name of hook for DELETED events. Default is 'deleted.sh'
     -e,--log-events: log received events to log file
+    -h,--hooks: path to hooks. Default is `./hooks`)
     -l,--log-file: path to the log
     -k,--kubeconfig: path to kubeconfig file for accessing Kubernetes cluster
-    -m,--modified: path to handler for MODIFIED events
+    -m,--modified: name of the hook for MODIFIED events. Default is modified.sh'
     -n,--namespace: namespace to watch (optional)
     -o,--object: type of object to watch
     -q,--queue: queue to store events
@@ -54,7 +55,7 @@ function handle_event(){
     # select handler based on event type
     # TODO: use an associative array to simplify logic and inderect variable substitution
     HANDLER=${EVENT_TYPE//\"/}"_HANDLER"
-    HANDLER_SCRIPT=${!HANDLER}
+    HANDLER_SCRIPT="${HOOKS}/${!HANDLER}"
     if [[ ! -e $HANDLER_SCRIPT ]]; then
         echo "No event handler exits for event $EVENT_TYPE. Ignoring." >> $LOG_FILE
         return
@@ -105,9 +106,10 @@ function parse_args(){
     OBJECT_TYPE=
     LOG_EVENTS=false
     LOG_FILE="/tmp/k8s-events.log"
-    ADDED_HANDLER="hooks/added.sh"
-    MODIFIED_HANDLER="hooks/modified.sh"
-    DELETED_HANDLER="hooks/deleted.sh"
+    HOOKS="hooks"
+    ADDED_HANDLER="added.sh"
+    MODIFIED_HANDLER="modified.sh"
+    DELETED_HANDLER="deleted.sh"
 
     while [[ $# != 0 ]] ; do
         case $1 in
@@ -124,6 +126,11 @@ function parse_args(){
                 ;;
             -e|--log-events)
                 LOG_EVENTS=true
+                ;;
+            -h|--hooks)
+                # ensure to remove the last '/' if any 
+                HOOKS=${2%/}
+                shift
                 ;;
             -l|--log-file)
                 LOG_FILE=$2
@@ -152,7 +159,7 @@ function parse_args(){
             -r|--reset-queue)
                 RESET_QUEUE=true
                 ;;
-            -h|--help)
+            --help)
                 usage >&2
                 exit 1
                 ;;
@@ -179,6 +186,7 @@ function parse_args(){
     echo "KUBECONFIG=$KUBECONFIG"
     echo "LOG_EVENTS=$LOG_EVENTS"
     echo "LOG_FILE=$LOG_FILE"
+    echo "HOOKS=$HOOKS"
     echo "ADDED_HANDLER=$ADDED_HANDLER"
     echo "MODIFIED_HANDLER=$MODIFIED_HANDLER"
     echo "DELETED_HANDLER=$DELETED_HANDLER"
