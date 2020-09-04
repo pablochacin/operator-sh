@@ -93,7 +93,7 @@ function assert_file_does_not_exist(){
 function Test(){
     TEST_INPUT=${2:-"/dev/null"}
     TEST_COMMAND="$1"
-    TEST_OUTPUT=$($1 2>&1 < $TEST_INPUT)
+    TEST_OUTPUT=$(eval "$1 2>&1 < $TEST_INPUT")
     TEST_RC=$?
 }
 

@@ -57,7 +57,6 @@ assert_command_rc 0
 assert_output_contains "LOG_EVENTS=true"
 
 # Test log-file is parsed
-set -x
 LOG_FILE="/path/to/log/file"
 Test "parse_args -o my-object --log-file $LOG_FILE"
 assert_command_rc 0
