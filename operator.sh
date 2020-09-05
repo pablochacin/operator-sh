@@ -254,11 +254,14 @@ function main(){
     create_queue
 
     # start sub-process and wait ensuring sub-processes are killed on exit
-    trap "exit" INT TERM
-    trap "kill 0" EXIT
-
     watch &
+    WATCH_PID=$!
     process & 
+    PROCESS_PID=$!
+
+    trap "exit" INT TERM
+    trap "kill $WATCH_PID $PROCESS_PID" EXIT
+
     wait
 }
 
