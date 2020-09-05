@@ -67,6 +67,16 @@ Test "parse_args -o my-object --reset-log"
 assert_command_rc 0
 assert_output_contains "RESET_LOG=true"
 
+# Test filter-spec is parsed
+Test "parse_args -o my-object --filter-spec"
+assert_command_rc 0
+assert_output_contains "FILTER_SPEC=true"
+
+# Test filter-status is parsed
+Test "parse_args -o my-object --filter-status"
+assert_command_rc 0
+assert_output_contains "FILTER_STATUS=true"
+
 # Test default queue is created
 eval $(parse_args -o OBJECT)
 assert_not_null $EVENT_QUEUE

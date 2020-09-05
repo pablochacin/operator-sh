@@ -22,6 +22,8 @@ cat <<EOF
     -q,--queue: queue to store events
     -r,--reset-queue: reset queue to delete any pending event from previous executions
     -R,--reset-log: reset log delete messages from previous executions
+    -s,--filter-spec: filter object spec from event
+    -S,--filter-statis: filter object status from event
     -h,--help: display this help
 
 EOF
@@ -45,17 +47,16 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 # handles an event received as stdin 
 function handle_event(){
-
-   # parse event fields as environment variables
-   EVENT_ENV=$($SCRIPT_DIR/parse.py 2>>$LOG_FILE)
-   PARSER_RC=$?
-   if [[ ! -z $PARSER_RC ]]; then
-       echo "Error parsing event" >> $LOG_FILE
-       return
-   fi
-
-   # execute handler in its own environment
-   (
+    # parse event fields as environment variables
+    EVENT_ENV=$($SCRIPT_DIR/parse.py ${FILTER_SPEC:+"--no-spec"} ${FILTER_STATUS:+"--no-status"} 2>>$LOG_FILE)
+    PARSER_RC=$?
+    if [[ $PARSER_RC -ne 0 ]]; then
+        echo "Error parsing event" >> $LOG_FILE
+        echo $EVENT_ENV >> $LOG_FILE
+        return
+    fi
+    # execute handler in its own environment
+    (
     export $EVENT_ENV
 
     # select handler based on event type
@@ -131,6 +132,8 @@ function parse_args(){
     ADDED_HANDLER="added.sh"
     MODIFIED_HANDLER="modified.sh"
     DELETED_HANDLER="deleted.sh"
+    FILTER_SPEC=
+    FILTER_STATUS=
 
     while [[ $# != 0 ]] ; do
         case $1 in
@@ -183,6 +186,12 @@ function parse_args(){
             -R|--reset-log)
                 RESET_LOG=true
                 ;;
+            -s|--filter-spec)
+                FILTER_SPEC=true
+                ;;
+            -S|--filter-status)
+                FILTER_STATUS=true
+                ;;
             --help)
                 usage >&2
                 exit 1
@@ -215,7 +224,8 @@ function parse_args(){
     echo "ADDED_HANDLER=$ADDED_HANDLER"
     echo "MODIFIED_HANDLER=$MODIFIED_HANDLER"
     echo "DELETED_HANDLER=$DELETED_HANDLER"
-
+    echo "FILTER_STATUS=$FILTER_STATUS"
+    echo "FILTER_SPEC=$FILTER_SPEC"
 }
 
 # main logic
