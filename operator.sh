@@ -232,7 +232,10 @@ function main(){
 
     create_queue
 
-    # start sub-process and wait
+    # start sub-process and wait ensuring sub-processes are killed on exit
+    trap "exit" INT TERM
+    trap "kill 0" EXIT
+
     watch &
     process & 
     wait
