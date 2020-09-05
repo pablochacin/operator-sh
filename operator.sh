@@ -48,6 +48,11 @@ function handle_event(){
 
    # parse event fields as environment variables
    EVENT_ENV=$($SCRIPT_DIR/parse.py 2>>$LOG_FILE)
+   PARSER_RC=$?
+   if [[ ! -z $PARSER_RC ]]; then
+       echo "Error parsing event" >> $LOG_FILE
+       return
+   fi
 
    # execute handler in its own environment
    (
