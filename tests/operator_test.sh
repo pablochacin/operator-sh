@@ -1,7 +1,7 @@
 #!/bin/bash
 
-source ../lib/test.sh
-source ../operator.sh
+source lib/test.sh
+source operator.sh
 
 # Test invalid argument option
 Test "parse_args --invalid-option"
@@ -66,6 +66,11 @@ assert_output_contains "LOG_FILE=$LOG_FILE"
 Test "parse_args -o my-object --reset-log"
 assert_command_rc 0
 assert_output_contains "RESET_LOG=true"
+
+# Test log-level is parsed
+Test "parse_args -o my-object --log-level DEBUG"
+assert_command_rc 0
+assert_output_contains "LOG_LEVEL=$LOG_LEVEL_DEBUG"
 
 # Test filter-spec is parsed
 Test "parse_args -o my-object --filter-spec"

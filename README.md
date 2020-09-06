@@ -26,6 +26,7 @@ To achieve these goals, the `operator-sh` framework follows the design principle
     -e,--log-events: log received events to log file
     -h,--hooks: path to hooks. Default is `./hooks`
     -l,--log-file: path to the log. Default is /var/log/operator-sh.log
+    -L,--log-level: set log level (valid values are DEBUG, INFO, WARNING, ERROR)
     -k,--kubeconfig: path to kubeconfig file for accessing Kubernetes cluster
     -m,--modified: name of the hook for MODIFIED events. Default is modified.sh'
     -n,--namespace: namespace to watch (optional)
@@ -68,17 +69,22 @@ $ export KUBECONFIG="$(kind get kubeconfig-path --name="kind")"
 
 ### Logging Pod creation
 
-In this example we will simply log each pod that is created. For doing so, we will use a simple script located in `examples/pods/added.sh` which logs every pod added event received:
+In this example we will simply log each pod that is created. For doing so, we will use a simple script located in `examples/pods/added.sh` which logs every pod added event received and dumps the content of the enrironment variables with the fields from the event:
 
 ```
 #!/bin/bash
-echo "$(date +'%y-%m-%d %H:%m:%S') Processing event ${EVENT_TYPE} for object ${EVENT_OBJECT_KIND}/${EVENT_OBJECT_METADATA_NAME}" >> $LOG_FILE
+
+source lib/log.sh
+
+log_info "Processing event ${EVENT_TYPE} for object ${EVENT_OBJECT_KIND}/${EVENT_OBJECT_METADATA_NAME}"
+log_debug "$(env | grep 'EVENT_' | sort)"
+
 ```
 
 1. In one terminal start the operator using the example script for monitoring pod creation at `examples/pods/added.sh`. Redirect the log to /tmp/operator-sh.log (default is located at `/var/log/operator-sh.log`)
 
 ```
-$ ./operator.sh -o pod --hooks examples/pods -R -l /tmp/operator-sh.log
+$ ./operator.sh -o pod --hooks examples/pods -R -l /tmp/operator-sh.log -L DEBUG
 ```
 
 2. In another terminal, start watching the log 
@@ -98,10 +104,10 @@ deployment.apps/nginx created
 4. In the terminal on which you are tailing the log, you should see these messages:
 
 ```
-20-09-04 22:09:12 Processing event "ADDED" for object "Pod"/"nginx-554b9c67f9-8m7qq"
-No event handler exits for event "MODIFIED". Ignoring.
-No event handler exits for event "MODIFIED". Ignoring.
-No event handler exits for event "MODIFIED". Ignoring.
+20-09-04 22:09:12 INFO Processing event "ADDED" for object "Pod"/"nginx-554b9c67f9-8m7qq"
+20-09-04 22:09:12 DEBUG No event handler exits for event "MODIFIED". Ignoring.
+20-09-04 22:09:12 DEBUG No event handler exits for event "MODIFIED". Ignoring.
+20-09-04 22:09:12 DEBUG No event handler exits for event "MODIFIED". Ignoring.
 ```
 
 Notice that as there is not hook for the `MODIFIED` event, these events are ignored by `operator-sh`
@@ -115,15 +121,76 @@ $ kubectl scale deployment nginx --replicas 3
 You should see these new messages in the log:
 
 ```
-20-09-04 22:09:59 Processing event "ADDED" for object "Pod"/"nginx-554b9c67f9-xs4zz"
-20-09-04 22:09:59 Processing event "ADDED" for object "Pod"/"nginx-554b9c67f9-sjrsk"
-No event handler exits for event "MODIFIED". Ignoring.
-No event handler exits for event "MODIFIED". Ignoring.
-No event handler exits for event "MODIFIED". Ignoring.
-No event handler exits for event "MODIFIED". Ignoring.
-No event handler exits for event "MODIFIED". Ignoring.
-No event handler exits for event "MODIFIED". Ignoring.
+20-09-04 22:09:58 INFO Processing event "ADDED" for object "Pod"/"nginx-554b9c67f9-xs4zz"
+20-09-04 22:09:59 INFO Processing event "ADDED" for object "Pod"/"nginx-554b9c67f9-sjrsk"
+20-09-04 22:09:59 DEBUG No event handler exits for event "MODIFIED". Ignoring.
+20-09-04 22:09:59 DEBUG No event handler exits for event "MODIFIED". Ignoring.
+20-09-04 22:09:59 DEBUG No event handler exits for event "MODIFIED". Ignoring.
+20-09-04 22:09:59 DEBUG No event handler exits for event "MODIFIED". Ignoring.
+20-09-04 22:10:00 DEBUG No event handler exits for event "MODIFIED". Ignoring.
+20-09-04 22:10:00 DEBUG No event handler exits for event "MODIFIED". Ignoring.
 ```
+
+6. Modify the script `examples/pods/added.sh` and change the log level to `LOG_LEVEL_DEBUG`. Back in the kubectl terminal, increase the number of replicas to 4 `$ kubectl scale deployment nginx --replicas 4`. You should see now the following in the log file:
+
+<details>
+<summary> (click to see the complete listing)
+
+```
+2020-09-06 19:44:41 INFO Processing event ADDED for object Pod/nginx-554b9c67f9-v7krx
+2020-09-06 19:44:41 DEBUG EVENT_OBJECT_APIVERSION=v1
+EVENT_OBJECT_KIND=Pod
+EVENT_OBJECT_METADATA_CREATIONTIMESTAMP=2020-09-06T17:44:41Z
+EVENT_OBJECT_METADATA_GENERATENAME=nginx-554b9c67f9-
+EVENT_OBJECT_METADATA_LABELS_APP=nginx
+EVENT_OBJECT_METADATA_LABELS_POD_TEMPLATE_HASH=554b9c67f9
+EVENT_OBJECT_METADATA_NAME=nginx-554b9c67f9-v7krx
+EVENT_OBJECT_METADATA_NAMESPACE=default
+```
+</summary>
+
+```
+EVENT_OBJECT_METADATA_OWNERREFERENCES_0_APIVERSION=apps/v1
+EVENT_OBJECT_METADATA_OWNERREFERENCES_0_BLOCKOWNERDELETION=1
+EVENT_OBJECT_METADATA_OWNERREFERENCES_0_CONTROLLER=1
+EVENT_OBJECT_METADATA_OWNERREFERENCES_0_KIND=ReplicaSet
+EVENT_OBJECT_METADATA_OWNERREFERENCES_0_NAME=nginx-554b9c67f9
+EVENT_OBJECT_METADATA_OWNERREFERENCES_0_UID=5e891bbc-2527-436b-9b88-d5821bb0557d
+EVENT_OBJECT_METADATA_RESOURCEVERSION=55933
+EVENT_OBJECT_METADATA_SELFLINK=/api/v1/namespaces/default/pods/nginx-554b9c67f9-v7krx
+EVENT_OBJECT_METADATA_UID=da802dcb-236a-4b35-9f80-887ddf6e4835
+EVENT_OBJECT_SPEC_CONTAINERS_0_IMAGE=nginx
+EVENT_OBJECT_SPEC_CONTAINERS_0_IMAGEPULLPOLICY=Always
+EVENT_OBJECT_SPEC_CONTAINERS_0_NAME=nginx
+EVENT_OBJECT_SPEC_CONTAINERS_0_TERMINATIONMESSAGEPATH=/dev/termination-log
+EVENT_OBJECT_SPEC_CONTAINERS_0_TERMINATIONMESSAGEPOLICY=File
+EVENT_OBJECT_SPEC_CONTAINERS_0_VOLUMEMOUNTS_0_MOUNTPATH=/var/run/secrets/kubernetes.io/serviceaccount
+EVENT_OBJECT_SPEC_CONTAINERS_0_VOLUMEMOUNTS_0_NAME=default-token-9d96d
+EVENT_OBJECT_SPEC_CONTAINERS_0_VOLUMEMOUNTS_0_READONLY=1
+EVENT_OBJECT_SPEC_DNSPOLICY=ClusterFirst
+EVENT_OBJECT_SPEC_ENABLESERVICELINKS=1
+EVENT_OBJECT_SPEC_PRIORITY=0
+EVENT_OBJECT_SPEC_RESTARTPOLICY=Always
+EVENT_OBJECT_SPEC_SCHEDULERNAME=default-scheduler
+EVENT_OBJECT_SPEC_SERVICEACCOUNT=default
+EVENT_OBJECT_SPEC_SERVICEACCOUNTNAME=default
+EVENT_OBJECT_SPEC_TERMINATIONGRACEPERIODSECONDS=30
+EVENT_OBJECT_SPEC_TOLERATIONS_0_EFFECT=NoExecute
+EVENT_OBJECT_SPEC_TOLERATIONS_0_KEY=node.kubernetes.io/not-ready
+EVENT_OBJECT_SPEC_TOLERATIONS_0_OPERATOR=Exists
+EVENT_OBJECT_SPEC_TOLERATIONS_0_TOLERATIONSECONDS=300
+EVENT_OBJECT_SPEC_TOLERATIONS_1_EFFECT=NoExecute
+EVENT_OBJECT_SPEC_TOLERATIONS_1_KEY=node.kubernetes.io/unreachable
+EVENT_OBJECT_SPEC_TOLERATIONS_1_OPERATOR=Exists
+EVENT_OBJECT_SPEC_TOLERATIONS_1_TOLERATIONSECONDS=300
+EVENT_OBJECT_SPEC_VOLUMES_0_NAME=default-token-9d96d
+EVENT_OBJECT_SPEC_VOLUMES_0_SECRET_DEFAULTMODE=420
+EVENT_OBJECT_SPEC_VOLUMES_0_SECRET_SECRETNAME=default-token-9d96d
+EVENT_OBJECT_STATUS_PHASE=Pending
+EVENT_OBJECT_STATUS_QOSCLASS=BestEffort
+EVENT_TYPE=ADDED
+```
+</details>
 
 ## Design
 

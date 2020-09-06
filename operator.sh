@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source lib/log.sh
+
 # prints usage help
 function usage(){
 
@@ -15,6 +17,7 @@ cat <<EOF
     -e,--log-events: log received events to log file
     -h,--hooks: path to hooks. Default is `./hooks`
     -l,--log-file: path to the log. Default is /var/log/operator-sh.log
+    -L,--log-level: log level ("debug", "info", "warning", "error") 
     -k,--kubeconfig: path to kubeconfig file for accessing Kubernetes cluster
     -m,--modified: name of the hook for MODIFIED events. Default is modified.sh'
     -n,--namespace: namespace to watch (optional)
@@ -51,8 +54,8 @@ function handle_event(){
     EVENT_ENV=$($SCRIPT_DIR/parse.py ${FILTER_SPEC:+"--no-spec"} ${FILTER_STATUS:+"--no-status"} 2>>$LOG_FILE)
     PARSER_RC=$?
     if [[ $PARSER_RC -ne 0 ]]; then
-        echo "Error parsing event" >> $LOG_FILE
-        echo $EVENT_ENV >> $LOG_FILE
+        log_warning "Error parsing event"
+        log_warning $EVENT_ENV
         return
     fi
     # execute handler in its own environment
@@ -64,12 +67,13 @@ function handle_event(){
     HANDLER=${EVENT_TYPE//\"/}"_HANDLER"
     HANDLER_SCRIPT="${HOOKS}/${!HANDLER}"
     if [[ ! -e $HANDLER_SCRIPT ]]; then
-        echo "No event handler exits for event $EVENT_TYPE. Ignoring." >> $LOG_FILE
+        log_debug "No event handler exits for event $EVENT_TYPE. Ignoring."
         return
     fi
 
     # Pass log file to allow handlers to append messages to the log
     export "LOG_FILE=$LOG_FILE" 
+    export "LOG_LEVEL=$LOG_LEVEL"
 
     # Pass kubeconfig to allow handles to interact with the cluster using kubectl
     export "KUBECONFIG=$KUBECONFIG"
@@ -85,7 +89,7 @@ function process(){
 
     while read EVENT ; do 
         if $LOG_EVENTS; then
-            echo "$(date +'%y-%m-%d %H:%m:%S') $EVENT" >> $LOG_FILE
+            log_info $EVENT
         fi
         handle_event <<< $EVENT
     done < $EVENT_QUEUE  
@@ -128,6 +132,7 @@ function parse_args(){
     OBJECT_TYPE=
     LOG_EVENTS=false
     LOG_FILE="/var/log/operator-sh.log"
+    LOG_LEVEL=LOG_LEVEL_INFO
     HOOKS="hooks"
     ADDED_HANDLER="added.sh"
     MODIFIED_HANDLER="modified.sh"
@@ -158,6 +163,10 @@ function parse_args(){
                 ;;
             -l|--log-file)
                 LOG_FILE=$2
+                shift
+                ;;
+            -L|--log-level)
+                LOG_LEVEL=$(log_get_level $2)
                 shift
                 ;;
             -k|--kubeconfig)
@@ -211,6 +220,7 @@ function parse_args(){
         exit 1
     fi 
 
+
     echo "OBJECT_TYPE=$OBJECT_TYPE"
     echo "CHANGES_ONLY=$CHANGES_ONLY"
     echo "EVENT_QUEUE=$EVENT_QUEUE"
@@ -220,6 +230,7 @@ function parse_args(){
     echo "KUBECONFIG=$KUBECONFIG"
     echo "LOG_EVENTS=$LOG_EVENTS"
     echo "LOG_FILE=$LOG_FILE"
+    echo "LOG_LEVEL=$LOG_LEVEL"
     echo "HOOKS=$HOOKS"
     echo "ADDED_HANDLER=$ADDED_HANDLER"
     echo "MODIFIED_HANDLER=$MODIFIED_HANDLER"
