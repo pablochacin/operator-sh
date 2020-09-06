@@ -57,7 +57,7 @@ function handle_event(){
     fi
     # execute handler in its own environment
     (
-    export $EVENT_ENV
+    eval $EVENT_ENV
 
     # select handler based on event type
     # TODO: use an associative array to simplify logic and inderect variable substitution
