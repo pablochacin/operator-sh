@@ -105,7 +105,7 @@ function assert_file_does_not_exist(){
 #
 # TODO: allow command pipes like 'cat input.txt | wc -l' as command
 #       Such pipes fail. Check how the command is executed in a subshell.
-function Test(){
+function unit_test(){
     TEST_INPUT=${2:-"/dev/null"}
     TEST_COMMAND="$1"
     TEST_OUTPUT=$(eval "$1 2>&1 < $TEST_INPUT")
