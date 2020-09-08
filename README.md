@@ -22,11 +22,12 @@ To achieve these goals, the `operator-sh` framework follows the design principle
 
     Options
     -a,--added: name of the hook for ADDED events. Default is 'added.sh'
+    -c,--changes-only: do not received ADDED events for existing objects
     -d,--deleted: name of hook for DELETED events. Default is 'deleted.sh'
     -e,--log-events: log received events to log file
-    -h,--hooks: path to hooks. Default is `./hooks`
+    -h,--hooks: path to hooks. Default is 'hooks/'
     -l,--log-file: path to the log. Default is /var/log/operator-sh.log
-    -L,--log-level: set log level (valid values are DEBUG, INFO, WARNING, ERROR)
+    -L,--log-level: log level ("DEBUG", "INFO", "WARNING", "ERROR") 
     -k,--kubeconfig: path to kubeconfig file for accessing Kubernetes cluster
     -m,--modified: name of the hook for MODIFIED events. Default is modified.sh'
     -n,--namespace: namespace to watch (optional)
@@ -34,7 +35,9 @@ To achieve these goals, the `operator-sh` framework follows the design principle
     -q,--queue: queue to store events
     -r,--reset-queue: reset queue to delete any pending event from previous executions
     -R,--reset-log: reset log delete messages from previous executions
-    -h,--help: display this help
+    -s,--filter-spec: filter object spec from event
+    -S,--filter-status: filter object status from event
+    --help: display this help
 
 ```
 

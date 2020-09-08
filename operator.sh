@@ -2,38 +2,10 @@
 
 source lib/log.sh
 
-# prints usage help
-function usage(){
-
-cat <<EOF 
-    
-    Watch for events and process them using scripts
-
-    Usage: $0 [OPTIONS...]
-
-    Options
-    -a,--added: name of the hook for ADDED events. Default is 'added.sh'
-    -d,--deleted: name of hook for DELETED events. Default is 'deleted.sh'
-    -e,--log-events: log received events to log file
-    -h,--hooks: path to hooks. Default is `./hooks`
-    -l,--log-file: path to the log. Default is /var/log/operator-sh.log
-    -L,--log-level: log level ("debug", "info", "warning", "error") 
-    -k,--kubeconfig: path to kubeconfig file for accessing Kubernetes cluster
-    -m,--modified: name of the hook for MODIFIED events. Default is modified.sh'
-    -n,--namespace: namespace to watch (optional)
-    -o,--object: type of object to watch
-    -q,--queue: queue to store events
-    -r,--reset-queue: reset queue to delete any pending event from previous executions
-    -R,--reset-log: reset log delete messages from previous executions
-    -s,--filter-spec: filter object spec from event
-    -S,--filter-statis: filter object status from event
-    -h,--help: display this help
-
-EOF
-
-}
-
-# Watch events in k8s 
+# Watch events in k8s using kubectl
+#
+# Get objects and watch for events in json format. The events are sent
+# to a queue for processing.
 function watch(){
     local NS_FLAG=${NAMESPACE:+"-n ${NAMESPACE}"}
     local WATCH_ONLY_FLAG=$(if $CHANGES_ONLY; then echo "--watch-only"; fi)
@@ -119,6 +91,38 @@ function create_queue(){
     if [[ ! -e $EVENT_QUEUE ]]; then 
         mkfifo $EVENT_QUEUE
     fi
+}
+
+# prints usage help
+function usage(){
+
+cat <<EOF
+
+    Watch for events and process them using scripts
+
+    Usage: $0 [OPTIONS...]
+
+    Options
+    -a,--added: name of the hook for ADDED events. Default is 'added.sh'
+    -c,--changes-only: do not received ADDED events for existing objects
+    -d,--deleted: name of hook for DELETED events. Default is 'deleted.sh'
+    -e,--log-events: log received events to log file
+    -h,--hooks: path to hooks. Default is ./hooks
+    -l,--log-file: path to the log. Default is /var/log/operator-sh.log
+    -L,--log-level: log level ("DEBUG", "INFO", "WARNING", "ERROR") 
+    -k,--kubeconfig: path to kubeconfig file for accessing Kubernetes cluster
+    -m,--modified: name of the hook for MODIFIED events. Default is modified.sh'
+    -n,--namespace: namespace to watch (optional)
+    -o,--object: type of object to watch
+    -q,--queue: queue to store events
+    -r,--reset-queue: reset queue to delete any pending event from previous executions
+    -R,--reset-log: reset log delete messages from previous executions
+    -s,--filter-spec: filter object spec from event
+    -S,--filter-status: filter object status from event
+    --help: display this help
+
+EOF
+
 }
 
 # Parse command line arguments 
