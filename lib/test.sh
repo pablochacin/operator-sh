@@ -113,7 +113,7 @@ function unit_test(){
 }
 
 # Sets a command to be executed before each test
-function test_before_each(){
+function before_each(){
     TEST_BEFORE_EACH=$1
 }
 
