@@ -114,10 +114,27 @@ function unit_test(){
 
 # Sets a command to be executed before each test
 function before_each(){
-    TEST_BEFORE_EACH=$1
+    if [[ ! -z "$1" ]]; then
+        TEST_BEFORE_EACH=$1
+    else
+        TEST_BEFORE_EACH=":"
+    fi
 }
 
-# Sets the time to wait before getting test results
+# Sets a command to be executed after each test
+function after_each(){
+    if [[ ! -z "$1" ]]; then
+        TEST_AFTER_EACH=$1
+    else
+        TEST_AFTER_EACH=":"
+    fi
+}
+
+# Sets the time to wait before/after test steps
+# - After before_each
+# - Before test command
+# - After test command
+# - After after_each
 function test_wait(){
     TEST_WAIT=$1
 }
@@ -149,10 +166,16 @@ function e2e_test(){
     # check a cluster is defined
     if [[ -z "$(kind get clusters)" ]]; then
         echo "[$(caller)] test setup failed: no clusters defined"
-        exit
+        exit 1
     fi
-    
-    $TEST_BEFORE_EACH 2>&1 > /dev/null
+   
+    BEFORE_EACH_OUT=$(eval "$TEST_BEFORE_EACH 2>&1")
+    if [[ $? -ne 0 ]]; then
+        echo "[$(caller)] before each command failed"
+        echo "$BEFORE_EACH_OUT"
+        exit 1
+    fi
+    sleep $TEST_WAIT
 
     # start operator in background
     ./operator.sh -h tests/hooks $2 -l $TEST_LOG_FILE -q $TEST_QUEUE &
@@ -165,7 +188,7 @@ function e2e_test(){
         exit
     fi
 
-    
+    sleep $TEST_WAIT
     TEST_OUTPUT=$(eval "$1 2>&1")
     sleep $TEST_WAIT
 
@@ -173,17 +196,22 @@ function e2e_test(){
     TEST_LOG=$(cat $TEST_LOG_FILE)
 
     # clean up and exit
-    (
-    kill $OPERATOR_PID 
-    $TEST_AFTER_EACH
-    rm -f $TEST_LOG_FILE
-    )  2>&1 > /dev/null
+    kill $OPERATOR_PID 2>&1 > /dev/null 
+    rm -f $TEST_LOG_FILE 2>&1 > /dev/null
+
+    AFTER_EACH_OUT=$(eval "$TEST_AFTER_EACH 2>&1")
+    if [[ $? -ne 0 ]]; then
+        echo "[$(caller)] before each command failed"
+        echo "$AFTER_EACH_OUT"
+        exit 1
+    fi
+    sleep $TEST_WAIT
 }
 
 
 TEST_COMMAND=
 TEST_OUTPUT=
 TEST_RC=
-TEST_BEFORE_EACH=
-TEST_AFTER_EACH=
-TEST_WAIT=0
+TEST_BEFORE_EACH=":"
+TEST_AFTER_EACH=":"
+TEST_WAIT=10
