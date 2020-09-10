@@ -40,7 +40,7 @@ function assert_command_rc(){
 
 # assert if the last command returned ok 
 function assert_command_rc_is_ok(){
-    if [[ $TEST_RC == 0 ]]; then
+    if [[ $TEST_RC != 0 ]]; then
         echo "${TEST_CONTEXT@P} Assertion failed: command '$TEST_COMMAND' returned '$TEST_RC' expected '0'"
         exit 1
     fi
@@ -48,8 +48,8 @@ function assert_command_rc_is_ok(){
 
 # assert if the last command returned a value
 function assert_command_rc_is_not_ok(){
-    if [[ $TEST_RC != 0 ]]; then
-        echo "${TEST_CONTEXT@P} Assertion failed: command '$TEST_COMMAND' returned '0'"
+    if [[ $TEST_RC == 0 ]]; then
+        echo "${TEST_CONTEXT@P} Assertion failed: command '$TEST_COMMAND' returned unexpected value '0'"
         exit 1
     fi
 }
