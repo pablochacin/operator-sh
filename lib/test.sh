@@ -170,6 +170,8 @@ function e2e_test(){
     local TEST_LOG_FILE=$(mktemp /tmp/operator-XXXX.log)
     # get temp filename, but don't create file
     local TEST_QUEUE=$(mktemp /tmp/operator-XXX.queue -u)
+    # field separator used for iterating over before/after test commands
+    local IFS=';'
 
     # reset test results
     TEST_COMMAND=$1
@@ -183,7 +185,6 @@ function e2e_test(){
         exit 1
     fi
 
-    IFS=';'
     for BEFORE_EACH_CMD in $TEST_BEFORE_EACH; do  
         BEFORE_EACH_OUT=$(eval "$BEFORE_EACH_CMD" 2>&1)
         if [[ $? -ne 0 ]]; then
@@ -216,7 +217,6 @@ function e2e_test(){
     kill $OPERATOR_PID 2>&1 > /dev/null 
     rm -f $TEST_LOG_FILE 2>&1 > /dev/null
    
-    IFS=';'
     for AFTER_EACH_CMD in $TEST_AFTER_EACH; do 
         AFTER_EACH_OUT=$(eval "$AFTER_EACH_CMD" 2>&1)
         if [[ $? -ne 0 ]]; then
