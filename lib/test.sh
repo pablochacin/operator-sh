@@ -1,7 +1,7 @@
 # assert if test output does not contains a string
 function assert_output_does_not_contain(){
     if [[ $TEST_OUTPUT == *"$1"* ]]; then
-        echo "[$(caller)] Failed output does not contain $1"
+        echo "${TEST_CONTEXT@P} Failed output does not contain $1"
         exit 1
     fi
 }
@@ -9,7 +9,7 @@ function assert_output_does_not_contain(){
 # assert if test output contains a string
 function assert_output_contains(){
     if [[ $TEST_OUTPUT != *"$1"* ]]; then
-        echo "[$(caller)] Assertion failed output does not contain $1"
+        echo "${TEST_CONTEXT@P} Assertion failed output does not contain $1"
         exit 1
     fi
 }
@@ -17,7 +17,7 @@ function assert_output_contains(){
 # assert if test log does not contains a string
 function assert_log_does_not_contain(){
     if [[ $TEST_LOG == *"$1"* ]]; then
-        echo "[$(caller)] Failed log does not contain $1"
+        echo "${TEST_CONTEXT@P} Failed log does not contain $1"
         exit 1
     fi
 }
@@ -25,23 +25,38 @@ function assert_log_does_not_contain(){
 # assert if test output contains a string
 function assert_log_contains(){
     if [[ $TEST_LOG != *"$1"* ]]; then
-        echo "[$(caller)] Assertion failed log does not contain $1"
+        echo "${TEST_CONTEXT@P} Assertion failed log does not contain $1"
         exit 1
     fi
 }
 
-# assert if the last command returned '0'
+# assert if the last command returned a value
 function assert_command_rc(){
     if [[ $TEST_RC != $1 ]]; then
-        echo "[$(caller)] Assertion failed: command '$TEST_COMMAND' returned '$TEST_RC' expected '$1'"
+        echo "${TEST_CONTEXT@P} Assertion failed: command '$TEST_COMMAND' returned '$TEST_RC' expected '$1'"
         exit 1
     fi
 }
 
+# assert if the last command returned ok 
+function assert_command_rc_is_ok(){
+    if [[ $TEST_RC == 0 ]]; then
+        echo "${TEST_CONTEXT@P} Assertion failed: command '$TEST_COMMAND' returned '$TEST_RC' expected '0'"
+        exit 1
+    fi
+}
+
+# assert if the last command returned a value
+function assert_command_rc_is_not_ok(){
+    if [[ $TEST_RC != 0 ]]; then
+        echo "${TEST_CONTEXT@P} Assertion failed: command '$TEST_COMMAND' returned '0'"
+        exit 1
+    fi
+}
 # assert that the actual value $2 equals the expected value $1
 function assert_equals(){
     if [[ "$1" != "$2" ]]; then
-        echo "[$(caller)] Assertion failed: expected $1 actual $2"
+        echo "${TEST_CONTEXT@P} Assertion failed: expected $1 actual $2"
         exit 1
     fi
 }
@@ -49,7 +64,7 @@ function assert_equals(){
 # assert that the actual value $2 is not equals the expected value $1
 function assert_not_equals(){
     if [[ "$1" == "$2" ]]; then
-        echo "[$(caller)] Assertion failed: expected $1 actual $2"
+        echo "${TEST_CONTEXT@P} Assertion failed: expected $1 actual $2"
         exit 1
     fi
 }
@@ -65,11 +80,11 @@ function assert_condition(){
             return
             ;;
         1)
-            echo "[$(caller)] Assertion failed: $1 $2 $3"
+            echo "${TEST_CONTEXT@P} Assertion failed: $1 $2 $3"
             exit 1
             ;;
         *)
-            echo "[$(caller)] Assertion evaluation error: $ASSERT_OUTPUT"
+            echo "${TEST_CONTEXT@P} Assertion evaluation error: $ASSERT_OUTPUT"
             exit 1
             ;;
     esac
@@ -78,7 +93,7 @@ function assert_condition(){
 # assert that the actual value $1 is not null
 function assert_not_null(){
     if [[ -z "$1" ]]; then
-        echo "[$(caller)] Assertion failed: actual value is null"
+        echo "${TEST_CONTEXT@P} Assertion failed: actual value is null"
         exit 1
     fi
 }
@@ -86,7 +101,7 @@ function assert_not_null(){
 # assert file exits
 function assert_file_exists(){
     if [[ ! -e $1 ]]; then
-        echo "[$(caller)] Assertion failed: file '$1' doesn not exist"
+        echo "${TEST_CONTEXT@P} Assertion failed: file '$1' doesn not exist"
         exit 1
     fi
 }
@@ -94,7 +109,7 @@ function assert_file_exists(){
 # assert file does not exits
 function assert_file_does_not_exist(){
     if [[ -e $1 ]]; then
-        echo "[$(caller)] Assertion failed: file '$1' exists"
+        echo "${TEST_CONTEXT@P} Assertion failed: file '$1' exists"
         exit 1
     fi
 }
@@ -106,6 +121,14 @@ function assert_file_does_not_exist(){
 # TODO: allow command pipes like 'cat input.txt | wc -l' as command
 #       Such pipes fail. Check how the command is executed in a subshell.
 function unit_test(){
+    
+    # if name of caller function starts with "test_"
+    if [[ "${FUNCNAME[1]}" =~ ^test_.* ]]; then
+        TEST_NAME="${FUNCNAME[1]}"
+    else
+        TEST_NAME=
+    fi
+    
     TEST_INPUT=${2:-"/dev/null"}
     TEST_COMMAND="$1"
     TEST_OUTPUT=$(eval "$1 2>&1 < $TEST_INPUT")
@@ -173,6 +196,13 @@ function e2e_test(){
     # field separator used for iterating over before/after test commands
     local IFS=';'
 
+    # if name of caller function starts with "test_"
+    if [[ "${FUNCNAME[1]}" =~ ^test_.* ]]; then
+        TEST_NAME="${FUNCNAME[1]}"
+    else
+        TEST_NAME=
+    fi
+    
     # reset test results
     TEST_COMMAND=$1
     TEST_RC=
@@ -181,14 +211,14 @@ function e2e_test(){
 
     # check a cluster is defined
     if [[ -z "$(kind get clusters)" ]]; then
-        echo "[$(caller)] test setup failed: no clusters defined"
+        echo "${TEST_CONTEXT@P} test setup failed: no clusters defined"
         exit 1
     fi
 
     for BEFORE_EACH_CMD in $TEST_BEFORE_EACH; do  
         BEFORE_EACH_OUT=$(eval "$BEFORE_EACH_CMD" 2>&1)
         if [[ $? -ne 0 ]]; then
-            echo "[$(caller)] before each command failed: $BEFORE_EACH_CMD"
+            echo "${TEST_CONTEXT@P} before each command failed: $BEFORE_EACH_CMD"
             echo "$BEFORE_EACH_OUT"
             exit 1
         fi
@@ -202,7 +232,7 @@ function e2e_test(){
     # check operator started correctly
     ps --no-header $OPERATOR_PID > /dev/null
     if [[ $? -ne 0 ]]; then
-        echo "[$(caller)] operator failed to start"
+        echo "${TEST_CONTEXT@P} operator failed to start"
         exit
     fi
 
@@ -220,7 +250,7 @@ function e2e_test(){
     for AFTER_EACH_CMD in $TEST_AFTER_EACH; do 
         AFTER_EACH_OUT=$(eval "$AFTER_EACH_CMD" 2>&1)
         if [[ $? -ne 0 ]]; then
-            echo "[$(caller)] after each command failed: '$AFTER_EACH_CMD'"
+            echo "${TEST_CONTEXT@P} after each command failed: '$AFTER_EACH_CMD'"
             echo "$AFTER_EACH_OUT"
             exit 1
         fi
@@ -229,9 +259,26 @@ function e2e_test(){
 }
 
 
+TEST_CONTEXT="[\$(caller)] \${TEST_NAME:+[\$TEST_NAME] }"
+
 TEST_COMMAND=
 TEST_OUTPUT=
 TEST_RC=
 TEST_BEFORE_EACH=
 TEST_AFTER_EACH=
 TEST_WAIT=10
+
+
+function test_runner(){
+
+    # get list of test functions
+    TEST_LIST=$(grep $0 -e '^function test_*' | grep -o -e 'test_[a-zA-Z0-9\_\-]*')
+    
+    # execute tests
+    for TEST in $TEST_LIST; do
+        echo "executing $TEST"
+        $TEST
+    done
+
+    echo "fineshed"
+}
