@@ -455,18 +455,23 @@ The `operator-sh` is tested using a minimalistic testing framework defined in `l
 source ../lib/test.sh
 ```
 
-The operator tests are defined under the `test` directory. The example below executes the `parse.py` command and verifies it properly parses the event into environment variables:
+### Unit tests
+
+
+The example below executes the `parse.py` command and verifies it properly parses the event into environment variables:
 
 ```
 #!/bin/bash
 
-source ../lib/test.sh
+source lib/test.sh
 
 # Test default parsing with the event.json input
-Test "../parse.py" "event.json"
-assert_command_rc 0
-assert_output_contains "EVENT_TYPE="
-assert_equals 74 $(wc -l <<< $TEST_OUTPUT)
+function test_test_default_parsing(){ 
+    unit_test "./parse.py" "event.json"
+    assert_command_rc 0
+    assert_output_contains "EVENT_TYPE="
+    assert_equals 74 $(wc -l <<< $TEST_OUTPUT)
+}
 ```
 
 The framework can be also used to test functions in a script. For instance:
@@ -474,17 +479,23 @@ The framework can be also used to test functions in a script. For instance:
 ```
 #!/bin/bash
 
-source ../lib/test.sh
+source lib/test.sh
 
 # include the operator source code
 source ../operator.sh
 
 # Test invalid argument option
-Test "parse_args --invalid-option"
-assert_command_rc 1
-assert_output_contains "Invalid parameter"
-assert_output_contains "--invalid-option"
-assert_output_contains "Usage"
+function test_invalid_argument(){
+    unit_test "parse_args --invalid-option"
+    assert_command_rc 1
+    assert_output_contains "Invalid parameter"
+    assert_output_contains "--invalid-option"
+    assert_output_contains "Usage"
+}
+
+# invoke test runner
+test_runner
+
 ```
 
 However, in order to prevent the script's main logic to be executed when sourcing in into your test script, you can follow the convention of wrapping your main logic as shown below:
@@ -501,12 +512,38 @@ if [ "${BASH_SOURCE[0]}" == "$0" ]; then
 fi
 ```
 
+### E2E tests
+
+The test library also provides means for execting e2e tests with the operator-sh. These tests are excuted by launching the operator with some parameters, executing a command and asserting some post-conditions. See the example below:
+
+```
+source lib/test.sh
+
+# Test ADDED events are received for new pods created
+function test_new_pods(){
+    e2e_test "kubectl create deployment nginx --image nginx"  "-o pod -L INFO"
+    assert_command_rc 0
+    assert_log_contains "Processing event ADDED"
+}
+
+test_runner
+```
+
+To facilitate test setup and clenup, it is posible to execute commands before and after each test. 
+
+```
+# clean up deployments after each test
+after_each "kubectl delete deployment --all --wait=true" --ignore-errors
+
+test_runner
+```
+
 ## Road Map
 
-* Provide examples
-* Create image and k8s manifests for deploying operators
-* Implement e2e tests
-* Implement a library for managing CRDs (create, update)
+- [ ] Provide examples
+- [ ] Create image and k8s manifests for deploying operators
+- [x] Implement e2e tests
+- [ ] Implement a library for managing CRDs (create, update)
 
 ## Inspired by 
 
