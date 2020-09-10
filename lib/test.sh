@@ -112,21 +112,35 @@ function unit_test(){
     TEST_RC=$?
 }
 
-# Sets a command to be executed before each test
+# Sets a command to be executed before each test.
+# Test execution is stopped on command error unless the "--ignore-errors" flag is specificed
+# If called multiple times, the commands are executed in the
+# order of the calls. To reset the command list, call without arguments
 function before_each(){
+    local IGNORE_ERRORS=""
     if [[ ! -z "$1" ]]; then
-        TEST_BEFORE_EACH=$1
+        if [[ "$2" == "--ignore-errors" ]]; then
+            IGNORE_ERRORS="|| true"
+        fi
+        TEST_BEFORE_EACH="$TEST_BEFORE_EACH$1$IGNORE_ERRORS"
     else
-        TEST_BEFORE_EACH=":"
+        TEST_BEFORE_EACH=
     fi
 }
 
 # Sets a command to be executed after each test
+# Test execution is stopped on command error unless the "--ignore-errors" flag is specificed
+# If called multiple times, the commands are executed in the
+# order of the calls. To reset the command list, call without arguments
 function after_each(){
+    local IGNORE_ERRORS=""
     if [[ ! -z "$1" ]]; then
-        TEST_AFTER_EACH=$1
+        if [[ "$2" == "--ignore-errors" ]]; then
+            IGNORE_ERRORS=" || true"
+        fi
+        TEST_AFTER_EACH="$TEST_AFTER_EACH;$1$IGNORE_ERRORS"
     else
-        TEST_AFTER_EACH=":"
+        TEST_AFTER_EACH=
     fi
 }
 
@@ -168,13 +182,16 @@ function e2e_test(){
         echo "[$(caller)] test setup failed: no clusters defined"
         exit 1
     fi
-   
-    BEFORE_EACH_OUT=$(eval "$TEST_BEFORE_EACH 2>&1")
-    if [[ $? -ne 0 ]]; then
-        echo "[$(caller)] before each command failed"
-        echo "$BEFORE_EACH_OUT"
-        exit 1
-    fi
+
+    IFS=';'
+    for BEFORE_EACH_CMD in $TEST_BEFORE_EACH; do  
+        BEFORE_EACH_OUT=$(eval "$BEFORE_EACH_CMD" 2>&1)
+        if [[ $? -ne 0 ]]; then
+            echo "[$(caller)] before each command failed: $BEFORE_EACH_CMD"
+            echo "$BEFORE_EACH_OUT"
+            exit 1
+        fi
+    done
     sleep $TEST_WAIT
 
     # start operator in background
@@ -198,13 +215,16 @@ function e2e_test(){
     # clean up and exit
     kill $OPERATOR_PID 2>&1 > /dev/null 
     rm -f $TEST_LOG_FILE 2>&1 > /dev/null
-
-    AFTER_EACH_OUT=$(eval "$TEST_AFTER_EACH 2>&1")
-    if [[ $? -ne 0 ]]; then
-        echo "[$(caller)] before each command failed"
-        echo "$AFTER_EACH_OUT"
-        exit 1
-    fi
+   
+    IFS=';'
+    for AFTER_EACH_CMD in $TEST_AFTER_EACH; do 
+        AFTER_EACH_OUT=$(eval "$AFTER_EACH_CMD" 2>&1)
+        if [[ $? -ne 0 ]]; then
+            echo "[$(caller)] after each command failed: '$AFTER_EACH_CMD'"
+            echo "$AFTER_EACH_OUT"
+            exit 1
+        fi
+    done
     sleep $TEST_WAIT
 }
 
@@ -212,6 +232,6 @@ function e2e_test(){
 TEST_COMMAND=
 TEST_OUTPUT=
 TEST_RC=
-TEST_BEFORE_EACH=":"
-TEST_AFTER_EACH=":"
+TEST_BEFORE_EACH=
+TEST_AFTER_EACH=
 TEST_WAIT=10
