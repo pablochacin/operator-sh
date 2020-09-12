@@ -32,6 +32,23 @@ function test_namespace(){
     assert_log_contains "Processing event ADDED"
 }
 
+# Test filter status from events
+function test_filter_status(){
+    e2e_test "kubectl create deployment nginx --image nginx" "-o pod -L INFO --filter-status"
+    assert_command_rc 0
+    assert_log_contains "Processing event ADDED"
+    assert_log_does_not_contain "EVENT_OBJECT_STATUS"
+}
+
+
+# Test filter spec from events
+function test_filter_spec(){
+    e2e_test "kubectl create deployment nginx --image nginx" "-o pod -L INFO --filter-spec"
+    assert_command_rc 0
+    assert_log_contains "Processing event ADDED"
+    assert_log_does_not_contain "EVENT_OBJECT_SPEC"
+}
+
 
 # initialization of test suit
 
@@ -45,4 +62,4 @@ after_each "kubectl delete namespace test --wait=true"  --ignore-errors
 # set a wait of 10 seconds before test steps to avoid timing issues
 test_wait 10
 
-test_runner
+test_runner 
