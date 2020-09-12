@@ -517,6 +517,8 @@ fi
 The test library also provides means for execting e2e tests with the operator-sh. These tests are excuted by launching the operator with some parameters, executing a command and asserting some post-conditions. See the example below:
 
 ```
+#!/bin/bash
+
 source lib/test.sh
 
 # Test ADDED events are received for new pods created
@@ -526,7 +528,34 @@ function test_new_pods(){
     assert_log_contains "Processing event ADDED"
 }
 
-test_runner
+# Test ADDED events are received for existing pods
+function test_existing_pods(){
+    kubectl create deployment nginx --image nginx > /dev/null
+    e2e_test "kubectl get deployment nginx" "-o pod -L INFO"
+    assert_command_rc 0
+    assert_log_contains "Processing event ADDED"
+}
+
+test_runner $@
+```
+
+Executing it gives the following result:
+```
+$> tests/e2e_test.sh
+
+Executing tests
+  test_new_pods
+  test_existing_pods
+Finished
+```
+
+It is also possible to select a particular test to execute:
+
+```
+$> test/e2e_tests.sh -t test_existing_pods
+Executing tests
+  test_exising_pods
+Finished
 ```
 
 To facilitate test setup and clenup, it is posible to execute commands before and after each test. 

@@ -62,4 +62,4 @@ after_each "kubectl delete namespace test --wait=true"  --ignore-errors
 # set a wait of 10 seconds before test steps to avoid timing issues
 test_wait 10
 
-test_runner 
+test_runner $@

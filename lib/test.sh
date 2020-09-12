@@ -269,16 +269,72 @@ TEST_AFTER_EACH=
 TEST_WAIT=10
 
 
+function usage(){
+cat <<EOF
+
+    run tests in the current script
+
+    options:
+        -t,--tests: list of test functions to run, separated by ","
+
+EOF
+}
+
+# parse arguments
+function parse_args(){
+
+    TESTS=
+    while [[ $# != 0 ]]; do
+        case $1 in
+            -t|-tests)
+                # Replace ',' by ' '
+                TESTS=${2/,/ /}
+                shift
+                ;;
+            --help)
+                usage >&2
+                exit 1
+                ;;
+            *)
+                echo "Error: Invalid parameter ${1}" >&2
+                usage >&2
+                exit 1
+                ;;
+        esac
+        shift
+    done
+
+    echo "TESTS=$TESTS"
+} 
+
+
+# Executes tests in the current script
 function test_runner(){
+
+    ARGS=$(parse_args $@)
+    if [[ $? -ne 0 ]]; then
+        exit 1
+    fi
+    eval $ARGS
 
     # get list of test functions
     TEST_LIST=$(grep $0 -e '^function test_*' | grep -o -e 'test_[a-zA-Z0-9\_\-]*')
     
     # execute tests
+    if [[ -z $TEST_LIST ]]; then
+        echo "No tests detected in $0"
+        exit 1
+    fi
+
+    echo "Executing tests"
     for TEST in $TEST_LIST; do
-        echo "executing $TEST"
+        # skip if not selected 
+        if [[ ! -z $TESTS ]] && [[ ! ${TESTS[@]} =~ $TEST ]]; then
+            continue
+        fi
+        echo "  $TEST"
         $TEST
     done
 
-    echo "fineshed"
+    echo "Fineshed"
 }
