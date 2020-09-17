@@ -110,6 +110,13 @@ function test_filter_status_is_parsed(){
     assert_output_contains "FILTER_STATUS=true"
 }
 
+# Test filter-status is parsed
+function test_label_selector_is_parsed(){
+    test_cmd "parse_args -o my-object --label-selector label=value"
+    assert_command_rc 0
+    assert_output_contains "LABEL_SELECTOR=\"label=value\""
+}
+
 # Test default queue is created
 function test_default_queue_is_created(){
     eval $(parse_args -o OBJECT)
@@ -130,4 +137,5 @@ function test_named_queue_is_created(){
     rm -f $QUEUE_NAME
 }
 
-test_runner
+test_wait 0
+test_runner $@

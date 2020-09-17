@@ -10,9 +10,10 @@ function watch(){
     local NS_FLAG=${NAMESPACE:+"-n ${NAMESPACE}"}
     local WATCH_ONLY_FLAG=$(if $CHANGES_ONLY; then echo "--watch-only"; fi)
     local KUBECONFIG_FLAG=${KUBECONFIG:+"--kubeconfig $KUBECONFIG"}
+    local LS_FLAG=${LABEL_SELECTOR:+"--selector $LABEL_SELECTOR"}
 
     while true; do
-        kubectl $KUBECONFIG_FLAG get $OBJECT_TYPE --watch -o json --output-watch-events $NS_FLAG $WATCH_ONLY_FLAG >> $EVENT_QUEUE 
+        kubectl $KUBECONFIG_FLAG get $OBJECT_TYPE --watch -o json --output-watch-events $LS_FLAG $NS_FLAG $WATCH_ONLY_FLAG >> $EVENT_QUEUE 
     done
 
 }
@@ -59,7 +60,7 @@ function handle_event(){
 # Process events from events queue
 function process(){
 
-    while read EVENT ; do 
+    while read -r EVENT ; do 
         if $LOG_EVENTS; then
             log_info $EVENT
         fi
@@ -108,6 +109,8 @@ cat <<EOF
     -d,--deleted: name of hook for DELETED events. Default is 'deleted.sh'
     -e,--log-events: log received events to log file
     -h,--hooks: path to hooks. Default is ./hooks
+    --label-selector: watch objects that match the given label(s).
+      Supports '=', '==', and '!='.(e.g. -l key1=value1,key2=value2)
     -l,--log-file: path to the log. Default is /var/log/operator-sh.log
     -L,--log-level: log level ("DEBUG", "INFO", "WARNING", "ERROR") 
     -k,--kubeconfig: path to kubeconfig file for accessing Kubernetes cluster
@@ -143,6 +146,7 @@ function parse_args(){
     DELETED_HANDLER="deleted.sh"
     FILTER_SPEC=
     FILTER_STATUS=
+    LABEL_SELECTOR=
 
     while [[ $# != 0 ]] ; do
         case $1 in
@@ -163,6 +167,10 @@ function parse_args(){
             -h|--hooks)
                 # ensure to remove the last '/' if any 
                 HOOKS=${2%/}
+                shift
+                ;;
+            --label-selector)
+                LABEL_SELECTOR="$2"
                 shift
                 ;;
             -l|--log-file)
@@ -241,6 +249,7 @@ function parse_args(){
     echo "DELETED_HANDLER=$DELETED_HANDLER"
     echo "FILTER_STATUS=$FILTER_STATUS"
     echo "FILTER_SPEC=$FILTER_SPEC"
+    echo "LABEL_SELECTOR=\"$LABEL_SELECTOR\""
 }
 
 # main logic

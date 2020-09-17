@@ -55,6 +55,21 @@ function test_filter_spec(){
     e2e_assert_log_does_not_contain "EVENT_OBJECT_SPEC"
 }
 
+# Test label selector
+function test_label_selector_matched(){
+    E2E_OPERATOR_ARGS="-o pod -L INFO --label-selector environment=prod"
+    test_cmd "kubectl run nginx --image nginx --labels environment=prod" 
+    assert_command_rc 0
+    e2e_assert_log_contains "Processing event ADDED"
+}
+
+function test_label_selector_not_matched(){
+    E2E_OPERATOR_ARGS="-o pod -L INFO --label-selector environment=prod"
+    test_cmd "kubectl run nginx --image nginx --labels environment=dev" 
+    assert_command_rc 0
+    e2e_assert_log_does_not_contain "Processing event ADDED"
+}
+
 
 # initialization of test suit
 
@@ -62,6 +77,7 @@ e2e_check_cluster_active
 
 # Ensure there are no active deployments before tests starts
 kubectl delete deployment --all 2>&1 > /dev/null
+kubectl delete pods  --all 2>&1 > /dev/null
 
 # start operator before each test, with the options set in E2E_OPERATOR_ARGS
 before_each "e2e_start_operator"
@@ -69,6 +85,7 @@ before_each "e2e_start_operator"
 # clean up deployments after each test
 after_each "e2e_stop_operator"
 after_each "kubectl delete deployment --all --wait=true" 
+after_each "kubectl delete pod --all --wait=true" 
 after_each "kubectl delete namespace test --wait=true" 
 
 # set a wait of 5 seconds before test steps to avoid timing issues

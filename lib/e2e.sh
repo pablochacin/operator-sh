@@ -46,7 +46,7 @@ function e2e_stop_operator(){
 function e2e_assert_log_does_not_contain(){
     E2E_OPERATOR_LOG=$(test_get_env "E2E_OPERATOR_LOG")
     if [[ $E2E_OPERATOR_LOG == *"$1"* ]]; then
-        echo "${TEST_CONTEXT@P} Failed log does not contain $1"
+        echo "${TEST_CONTEXT@P} Assertion failed log contain $1"
         exit 1
     fi
 }

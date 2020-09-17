@@ -62,7 +62,8 @@ def main():
             continue
         if args.no_spec and var_name.startswith("OBJECT_SPEC"):
             continue
-        print(f'export {prefix}_{var_name}="{v}"')
+        var_value = v.replace('"','\\"').replace(':','\\:').replace('{','\\{').replace('}','\\}')
+        print(f'export {prefix}_{var_name}="{var_value}"')
 
 if __name__ == '__main__':
     main()

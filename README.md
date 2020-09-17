@@ -26,6 +26,8 @@ To achieve these goals, the `operator-sh` framework follows the design principle
     -d,--deleted: name of hook for DELETED events. Default is 'deleted.sh'
     -e,--log-events: log received events to log file
     -h,--hooks: path to hooks. Default is 'hooks/'
+    --label-selector: watch objects that match the given label(s).
+      Supports '=', '==', and '!='.(e.g. -l key1=value1,key2=value2)
     -l,--log-file: path to the log. Default is /var/log/operator-sh.log
     -L,--log-level: log level ("DEBUG", "INFO", "WARNING", "ERROR") 
     -k,--kubeconfig: path to kubeconfig file for accessing Kubernetes cluster
