@@ -5,7 +5,7 @@ source lib/e2e.sh
 # Test ADDED events are received for new pods created
 function test_new_pods(){
     E2E_OPERATOR_ARGS="-o pod -L INFO"
-    e2e_test "kubectl create deployment nginx --image nginx"
+    test_cmd "kubectl create deployment nginx --image nginx"
     assert_command_rc 0
     e2e_assert_log_contains "Processing event ADDED"
 }
@@ -14,7 +14,7 @@ function test_new_pods(){
 function test_existing_pods(){
     kubectl create deployment nginx --image nginx > /dev/null
     E2E_OPERATOR_ARGS="-o pod -L INFO"
-    e2e_test "kubectl get deployment nginx" 
+    test_cmd "kubectl get deployment nginx" 
     assert_command_rc 0
     e2e_assert_log_contains "Processing event ADDED"
 }
@@ -23,7 +23,7 @@ function test_existing_pods(){
 function test_not_existing_pods(){
     kubectl create deployment nginx --image nginx > /dev/null
     E2E_OPERATOR_ARGS="-o pod --changes-only -L INFO"
-    e2e_test "kubectl get deployment nginx" 
+    test_cmd "kubectl get deployment nginx" 
     assert_command_rc 0
     e2e_assert_log_does_not_contain "Processing event ADDED"
 }
@@ -31,7 +31,7 @@ function test_not_existing_pods(){
 # Test events only for given namespace are processed
 function test_namespace(){
     E2E_OPERATOR_ARGS="-o pod -L INFO"
-    e2e_test "kubectl create deployment nginx --image nginx"
+    test_cmd "kubectl create deployment nginx --image nginx"
     assert_command_rc 0
     e2e_assert_log_contains "Processing event ADDED"
 }
@@ -39,7 +39,7 @@ function test_namespace(){
 # Test filter status from events
 function test_filter_status(){
     E2E_OPERATOR_ARGS="-o pod -L INFO --filter-status"
-    e2e_test "kubectl create deployment nginx --image nginx"
+    test_cmd "kubectl create deployment nginx --image nginx"
     assert_command_rc 0
     e2e_assert_log_contains "Processing event ADDED"
     e2e_assert_log_does_not_contain "EVENT_OBJECT_STATUS"
@@ -49,7 +49,7 @@ function test_filter_status(){
 # Test filter spec from events
 function test_filter_spec(){
     E2E_OPERATOR_ARGS="-o pod -L INFO --filter-spec"
-    e2e_test "kubectl create deployment nginx --image nginx" 
+    test_cmd "kubectl create deployment nginx --image nginx" 
     assert_command_rc 0
     e2e_assert_log_contains "Processing event ADDED"
     e2e_assert_log_does_not_contain "EVENT_OBJECT_SPEC"

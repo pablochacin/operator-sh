@@ -5,7 +5,7 @@ source operator.sh
 
 # Test invalid argument option
 function test_invalid_argument(){
-    unit_test "parse_args --invalid-option"
+    test_cmd "parse_args --invalid-option"
     assert_command_rc 1
     assert_output_contains "Invalid parameter"
     assert_output_contains "--invalid-option"
@@ -14,7 +14,7 @@ function test_invalid_argument(){
 
 # Test missing required argument
 function test_missing_object_type(){
-    unit_test "parse_args"
+    test_cmd "parse_args"
     assert_command_rc 1
     assert_output_contains "Missing argument"
     assert_output_contains "Object type"
@@ -24,7 +24,7 @@ function test_missing_object_type(){
 # Test object type is parsed
 function test_object_type_is_parsed(){
     MY_OBJECT="my-object"
-    unit_test "parse_args -o $MY_OBJECT"
+    test_cmd "parse_args -o $MY_OBJECT"
     assert_command_rc 0
     assert_output_contains "OBJECT_TYPE=$MY_OBJECT" 
 }
@@ -32,7 +32,7 @@ function test_object_type_is_parsed(){
 # Test queue name is parsed
 function test_queue_name_is_parsed(){
     QUEUE_NAME="/tmp/$(uuidgen)"
-    unit_test "parse_args -o my-object --queue $QUEUE_NAME"
+    test_cmd "parse_args -o my-object --queue $QUEUE_NAME"
     assert_command_rc 0
     assert_output_contains "EVENT_QUEUE=$QUEUE_NAME"
 }
@@ -40,7 +40,7 @@ function test_queue_name_is_parsed(){
 # Test namespace is parsed
 function test_namespace_is_parsed(){
     MY_NAMESPACE="my-namespace"
-    unit_test "parse_args -o my-object -n $MY_NAMESPACE"
+    test_cmd "parse_args -o my-object -n $MY_NAMESPACE"
     assert_command_rc 0
     assert_output_contains "NAMESPACE=$MY_NAMESPACE"
 }
@@ -48,28 +48,28 @@ function test_namespace_is_parsed(){
 # Test kubeconfig is parsed
 function test_kubeconfig_is_parsed(){
     MY_KUBECONFIG="/path/to/my/kubeconfig"
-    unit_test "parse_args -o my-object -k $MY_KUBECONFIG"
+    test_cmd "parse_args -o my-object -k $MY_KUBECONFIG"
     assert_command_rc 0
     assert_output_contains "KUBECONFIG=$MY_KUBECONFIG"
 }
 
 # Test changes-only is parsed
 function test_changes_only_is_parsed(){
-    unit_test "parse_args -o my-object --changes-only"
+    test_cmd "parse_args -o my-object --changes-only"
     assert_command_rc 0
     assert_output_contains "CHANGES_ONLY=true"
 }
 
 # Test reset-queue is parsed
 function test_reset_queue_is_parsed(){
-    unit_test "parse_args -o my-object --reset-queue"
+    test_cmd "parse_args -o my-object --reset-queue"
     assert_command_rc 0
     assert_output_contains "RESET_QUEUE=true"
 }
 
 # Test log-events is parsed
 function test_log_events_is_parsed(){
-    unit_test "parse_args -o my-object --log-events"
+    test_cmd "parse_args -o my-object --log-events"
     assert_command_rc 0
     assert_output_contains "LOG_EVENTS=true"
 }
@@ -77,35 +77,35 @@ function test_log_events_is_parsed(){
 # Test log-file is parsed
 function test_log_file_is_parsed(){
     LOG_FILE="/path/to/log/file"
-    unit_test "parse_args -o my-object --log-file $LOG_FILE"
+    test_cmd "parse_args -o my-object --log-file $LOG_FILE"
     assert_command_rc 0
     assert_output_contains "LOG_FILE=$LOG_FILE"
 }
 
 # Test reset-log is parsed
 function test_reset_log_is_parsed(){
-    unit_test "parse_args -o my-object --reset-log"
+    test_cmd "parse_args -o my-object --reset-log"
     assert_command_rc 0
     assert_output_contains "RESET_LOG=true"
 }
 
 # Test log-level is parsed
 function test_log_level_is_parsed(){
-    unit_test "parse_args -o my-object --log-level DEBUG"
+    test_cmd "parse_args -o my-object --log-level DEBUG"
     assert_command_rc 0
     assert_output_contains "LOG_LEVEL=$LOG_LEVEL_DEBUG"
 }
 
 # Test filter-spec is parsed
 function test_filter_spec_is_parsed(){
-    unit_test "parse_args -o my-object --filter-spec"
+    test_cmd "parse_args -o my-object --filter-spec"
     assert_command_rc 0
     assert_output_contains "FILTER_SPEC=true"
 }
 
 # Test filter-status is parsed
 function test_filter_status_is_parsed(){
-    unit_test "parse_args -o my-object --filter-status"
+    test_cmd "parse_args -o my-object --filter-status"
     assert_command_rc 0
     assert_output_contains "FILTER_STATUS=true"
 }
@@ -114,7 +114,7 @@ function test_filter_status_is_parsed(){
 function test_default_queue_is_created(){
     eval $(parse_args -o OBJECT)
     assert_not_null $EVENT_QUEUE
-    unit_test "create_queue"
+    test_cmd "create_queue"
     assert_command_rc 0 
     assert_file_exists $EVENT_QUEUE
 }
@@ -124,7 +124,7 @@ function test_named_queue_is_created(){
     QUEUE_NAME="/tmp/queue-$(uuidgen)"
     eval $(parse_args -o OBJECT -q $QUEUE_NAME)
     assert_not_null $EVENT_QUEUE
-    unit_test "create_queue"
+    test_cmd "create_queue"
     assert_command_rc 0 
     assert_file_exists $QUEUE_NAME
     rm -f $QUEUE_NAME

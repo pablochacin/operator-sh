@@ -99,26 +99,6 @@ function assert_file_does_not_exist(){
 }
 
 
-# Executes the command passed as $1 and captures the output and the rc.
-# Optionally $2 specifies a file to be used as stdin for the command
-#
-# TODO: allow command pipes like 'cat input.txt | wc -l' as command
-#       Such pipes fail. Check how the command is executed in a subshell.
-function unit_test(){
-    
-    # if name of caller function starts with "test_"
-    if [[ "${FUNCNAME[1]}" =~ ^test_.* ]]; then
-        TEST_NAME="${FUNCNAME[1]}"
-    else
-        TEST_NAME=
-    fi
-    
-    TEST_INPUT=${2:-"/dev/null"}
-    TEST_COMMAND="$1"
-    TEST_COMMAND_OUTPUT=$(eval "$1 2>&1 < $TEST_INPUT")
-    TEST_RC=$?
-}
-
 # Sets a command to be executed before each test.
 # Test execution is stopped on command error unless the "--ignore-errors" flag is specificed
 # If called multiple times, the commands are executed in the
@@ -164,18 +144,14 @@ function test_wait(){
 # 
 # The test command output is captured in the TEST_COMMAND_OUTPUT variable and the
 # return code in TEST_RC.
+# Optionally $2 specifies a file to be used as stdin for the command
 #
-function e2e_test(){
+# TODO: allow command pipes like 'cat input.txt | wc -l' as command
+#       Such pipes fail. Check how the command is executed in a subshell.
+function test_cmd(){
     local IFS=';'
     local SKIP_TEST=
 
-    # if name of caller function starts with "test_"
-    if [[ "${FUNCNAME[1]}" =~ ^test_.* ]]; then
-        TEST_NAME="${FUNCNAME[1]}"
-    else
-        TEST_NAME=
-    fi
-  
     for BEFORE_EACH_CMD in ${TEST_BEFORE_EACH/;}; do  
         (eval "$BEFORE_EACH_CMD" > $TEST_OUTPUT 2>&1)
         if [[ $? -ne 0 ]]; then
@@ -191,9 +167,10 @@ function e2e_test(){
     # execute command
     if [[ -z "$SKIP_TEST" ]]; then
         TEST_COMMAND=$1
+        TEST_INPUT=${2:-"/dev/null"}
         TEST_COMMAND_OUTPUT=
         TEST_LOG=
-        TEST_COMMAND_OUTPUT=$(eval "$TEST_COMMAND" 2>&1)
+        TEST_COMMAND_OUTPUT=$(eval "$TEST_COMMAND" 2>&1 <$TEST_INPUT)
         TEST_RC=$?
         sleep $TEST_WAIT
     fi
@@ -221,7 +198,7 @@ EOF
 }
 
 # parse arguments
-function parse_args(){
+function test_parse_args(){
 
     TESTS=
     while [[ $# != 0 ]]; do
@@ -277,7 +254,7 @@ TEST_WAIT=10
 # Executes tests in the current script
 function test_runner(){
 
-    ARGS=$(parse_args $@)
+    ARGS=$(test_parse_args $@)
     if [[ $? -ne 0 ]]; then
         exit 1
     fi
@@ -305,8 +282,9 @@ function test_runner(){
             TEST_COMMAND=
             TEST_COMMAND_OUTPUT=
             TEST_RC=
+            TEST_NAME="$TEST"
 
-            $TEST 
+            $TEST
 
             rm -rf $TEST_ENV
             rm -rf $TEST_OUTPUT
