@@ -21,9 +21,7 @@ To achieve these goals, the `operator-sh` framework follows the design principle
     Usage: ./operator.sh [OPTIONS...]
 
     Options
-    -a,--added: name of the hook for ADDED events. Default is 'added.sh'
     -c,--changes-only: do not received ADDED events for existing objects
-    -d,--deleted: name of hook for DELETED events. Default is 'deleted.sh'
     -e,--log-events: log received events to log file
     -h,--hooks: path to hooks. Default is 'hooks/'
     --label-selector: watch objects that match the given label(s).
@@ -31,7 +29,6 @@ To achieve these goals, the `operator-sh` framework follows the design principle
     -l,--log-file: path to the log. Default is /var/log/operator-sh.log
     -L,--log-level: log level ("DEBUG", "INFO", "WARNING", "ERROR") 
     -k,--kubeconfig: path to kubeconfig file for accessing Kubernetes cluster
-    -m,--modified: name of the hook for MODIFIED events. Default is modified.sh'
     -n,--namespace: namespace to watch (optional)
     -o,--object: type of object to watch
     -q,--queue: queue to store events
@@ -74,7 +71,7 @@ $ export KUBECONFIG="$(kind get kubeconfig-path --name="kind")"
 
 ### Logging Pod creation
 
-In this example we will simply log each pod that is created. For doing so, we will use a simple script located in `examples/pods/added.sh` which logs every pod added event received and dumps the content of the enrironment variables with the fields from the event:
+In this example we will simply log each pod that is created. For doing so, we will use a simple script located in `examples/pods/added` which logs every pod added event received and dumps the content of the enrironment variables with the fields from the event:
 
 ```
 #!/bin/bash
@@ -218,7 +215,7 @@ The operator-sh framework architecture is described in the figure below
 The operator process consists of two sub-processes:
 * watch: connects to the K8s cluster and watches for events on an object type, sending the events to a queue as a json object.
 * process: reads events from the queue and process them sequentially. Each event is parsed and converted to a series of environment variables, as described en the section `Json Parsing`. These variables are used to initialize the environment for the event handling scripts.
-* event handlers: each event type (ADDED, MODIFIED, DELETED) is handled by an external script provided by the user. This scripts are executed as sub-processes and received an environment with the content of the event and other setup information (for example, the path to the kubeconfig file to connect to the cluster)
+* event handlers: each event type (ADDED, MODIFIED, DELETED) is handled by an external script provided by the user. The script name's must match the event type but in all-lowercases (e.g. `added`). This scripts are executed as sub-processes and received an environment with the content of the event and other setup information (for example, the path to the kubeconfig file to connect to the cluster)
 
 ### Json parsing
 

@@ -36,10 +36,10 @@ function handle_event(){
     eval $EVENT_ENV
 
     # select handler based on event type
-    # TODO: use an associative array to simplify logic and inderect variable substitution
-    HANDLER=${EVENT_TYPE//\"/}"_HANDLER"
-    HANDLER_SCRIPT="${HOOKS}/${!HANDLER}"
-    if [[ ! -e $HANDLER_SCRIPT ]]; then
+    HANDLER=${EVENT_TYPE//\"/}
+    HANDLER=${HANDLER,,}
+    HANDLER=${HOOKS}/${HANDLER}
+    if [[ ! -e $HANDLER ]]; then
         log_debug "No event handler exits for event $EVENT_TYPE. Ignoring."
         return
     fi
@@ -52,7 +52,7 @@ function handle_event(){
     export "KUBECONFIG=$KUBECONFIG"
 
     # execute handler
-    exec $HANDLER_SCRIPT
+    exec $HANDLER
     )
 }
 
@@ -104,9 +104,7 @@ cat <<EOF
     Usage: $0 [OPTIONS...]
 
     Options
-    -a,--added: name of the hook for ADDED events. Default is 'added.sh'
     -c,--changes-only: do not received ADDED events for existing objects
-    -d,--deleted: name of hook for DELETED events. Default is 'deleted.sh'
     -e,--log-events: log received events to log file
     -h,--hooks: path to hooks. Default is ./hooks
     --label-selector: watch objects that match the given label(s).
@@ -114,7 +112,6 @@ cat <<EOF
     -l,--log-file: path to the log. Default is /var/log/operator-sh.log
     -L,--log-level: log level ("DEBUG", "INFO", "WARNING", "ERROR") 
     -k,--kubeconfig: path to kubeconfig file for accessing Kubernetes cluster
-    -m,--modified: name of the hook for MODIFIED events. Default is modified.sh'
     -n,--namespace: namespace to watch (optional)
     -o,--object: type of object to watch
     -q,--queue: queue to store events
@@ -141,25 +138,14 @@ function parse_args(){
     LOG_FILE="/var/log/operator-sh.log"
     LOG_LEVEL=LOG_LEVEL_INFO
     HOOKS="hooks"
-    ADDED_HANDLER="added.sh"
-    MODIFIED_HANDLER="modified.sh"
-    DELETED_HANDLER="deleted.sh"
     FILTER_SPEC=
     FILTER_STATUS=
     LABEL_SELECTOR=
 
     while [[ $# != 0 ]] ; do
         case $1 in
-            -a|--added)
-                ADDED_HANDLER=$2
-                shift
-                ;;
             -c|--changes-only)
                 CHANGES_ONLY=true
-                ;;
-            -d|--deleted)
-                DELETED_HANDLER=$2
-                shift
                 ;;
             -e|--log-events)
                 LOG_EVENTS=true
@@ -183,10 +169,6 @@ function parse_args(){
                 ;;
             -k|--kubeconfig)
                 KUBECONFIG=$2
-                shift
-                ;;
-            -m|--modified)
-                MODIFIED_HANDLER=$2
                 shift
                 ;;
             -n|--namespace)
@@ -244,9 +226,6 @@ function parse_args(){
     echo "LOG_FILE=$LOG_FILE"
     echo "LOG_LEVEL=$LOG_LEVEL"
     echo "HOOKS=$HOOKS"
-    echo "ADDED_HANDLER=$ADDED_HANDLER"
-    echo "MODIFIED_HANDLER=$MODIFIED_HANDLER"
-    echo "DELETED_HANDLER=$DELETED_HANDLER"
     echo "FILTER_STATUS=$FILTER_STATUS"
     echo "FILTER_SPEC=$FILTER_SPEC"
     echo "LABEL_SELECTOR=\"$LABEL_SELECTOR\""
