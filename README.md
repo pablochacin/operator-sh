@@ -51,23 +51,24 @@ Unless explicitly stated, we assume you have created a default cluster. Please n
 ```
 $ kind create cluster
 Creating cluster "kind" ...
- ✓ Ensuring node image (kindest/node:v1.15.0) 🖼
- ✓ Preparing nodes 📦 
- ✓ Creating kubeadm config 📜 
+ ✓ Ensuring node image (kindest/node:v1.19.1) 🖼
+ ✓ Preparing nodes 📦  
+ ✓ Writing configuration 📜 
  ✓ Starting control-plane 🕹️ 
  ✓ Installing CNI 🔌 
  ✓ Installing StorageClass 💾 
-Cluster creation complete. You can now use the cluster with:
+Set kubectl context to "kind-kind"
+You can now use your cluster with:
 
-export KUBECONFIG="$(kind get kubeconfig-path --name="kind")"
-kubectl cluster-info
+kubectl cluster-info --context kind-kind
+
+Thanks for using kind! 😊
 ```
 
-Remember that when running the operator in any other terminal than the one on which you created the cluster, you must ensure the `kubeconfig` file is available to the operator or any other tool, such as `kubectl`.
+`kind` automatically adds the credentials for accessing the cluster to `${HOME}/.kube/config` or to the path specified in the $KUBECONFIG environment variable, if it is set. You can make it the active context by using the command `kubectl config use-context kind-<cluster name>`.
+ 
+Remember that when running the operator in any other terminal than the one on which you created the cluster, you must ensure the `kubeconfig` file is available to the operator or any other tool, such as `kubectl` and the correct context is set by default. You can also pass both parameters to `operator.sh`.
 
-```
-$ export KUBECONFIG="$(kind get kubeconfig-path --name="kind")"
-```
 
 ### Logging Pod creation
 

@@ -53,6 +53,14 @@ function test_kubeconfig_is_parsed(){
     assert_output_contains "KUBECONFIG=$MY_KUBECONFIG"
 }
 
+# Test kubeconfig context is parsed
+function test_context_is_parsed(){
+    MY_CONTEXT="my-context"
+    test_cmd "parse_args -o my-object --context $MY_CONTEXT"
+    assert_command_rc 0
+    assert_output_contains "CONTEXT=$MY_CONTEXT"
+}
+
 # Test changes-only is parsed
 function test_changes_only_is_parsed(){
     test_cmd "parse_args -o my-object --changes-only"

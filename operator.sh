@@ -10,10 +10,11 @@ function watch(){
     local NS_FLAG=${NAMESPACE:+"-n ${NAMESPACE}"}
     local WATCH_ONLY_FLAG=$(if $CHANGES_ONLY; then echo "--watch-only"; fi)
     local KUBECONFIG_FLAG=${KUBECONFIG:+"--kubeconfig $KUBECONFIG"}
+    local CONTEXT_FLAG=${CONTEXT:+"--context $CONTEXT"}
     local LS_FLAG=${LABEL_SELECTOR:+"--selector $LABEL_SELECTOR"}
 
     while true; do
-        kubectl $KUBECONFIG_FLAG get $OBJECT_TYPE --watch -o json --output-watch-events $LS_FLAG $NS_FLAG $WATCH_ONLY_FLAG >> $EVENT_QUEUE 
+        kubectl $KUBECONFIG_FLAG $CONTEXT_FLAG get $OBJECT_TYPE --watch -o json --output-watch-events $LS_FLAG $NS_FLAG $WATCH_ONLY_FLAG >> $EVENT_QUEUE 
     done
 
 }
@@ -105,6 +106,7 @@ cat <<EOF
 
     Options
     -c,--changes-only: do not received ADDED events for existing objects
+    --context: kubeconfig context
     -e,--log-events: log received events to log file
     -h,--hooks: path to hooks. Default is ./hooks
     --label-selector: watch objects that match the given label(s).
@@ -132,6 +134,7 @@ function parse_args(){
     RESET_QUEUE=false
     RESET_LOG=false
     KUBECONFIG=$KUBECONFIG
+    CONTEXT=
     NAMESPACE=
     OBJECT_TYPE=
     LOG_EVENTS=false
@@ -146,6 +149,10 @@ function parse_args(){
         case $1 in
             -c|--changes-only)
                 CHANGES_ONLY=true
+                ;;
+            --context)
+                CONTEXT=$2
+                shift
                 ;;
             -e|--log-events)
                 LOG_EVENTS=true
@@ -222,6 +229,7 @@ function parse_args(){
     echo "RESET_LOG=$RESET_LOG"
     echo "NAMESPACE=$NAMESPACE"
     echo "KUBECONFIG=$KUBECONFIG"
+    echo "CONTEXT=$CONTEXT"
     echo "LOG_EVENTS=$LOG_EVENTS"
     echo "LOG_FILE=$LOG_FILE"
     echo "LOG_LEVEL=$LOG_LEVEL"
