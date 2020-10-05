@@ -5,6 +5,16 @@ function send(){
 	screen -S $SCREEN_SESSION -X stuff "$1$(echo -ne '\r')"
 }
 
+# types words one at a time with a delay between them
+function type(){
+    for w in $1; do
+	    screen -S $SCREEN_SESSION -X stuff "$w$(echo -ne ' ')"
+        sleep ${2:-0.1}
+    done
+    # remove last space and add <enter>
+    screen -S $SCREEN_SESSION -X stuff "$(echo -ne '\b\r')"
+}
+
 # Execute command passed as $1 and pass any remaining argument as
 # command argument
 function cmd(){
