@@ -106,8 +106,6 @@ function grid(){
     set +x
 }
 
-
-
 # sets current window's title
 function title(){
     cmd "title" "$1"
@@ -124,6 +122,21 @@ function remove(){
 function clean(){
 	sleep ${1:-0}
 	send "clear"
+}
+
+# connect to existing session
+function connect(){
+    SCREEN_SESSION=$1
+}
+
+# disconnect from screen session
+function detach(){
+    cmd "detach"
+}
+
+# terminate screen session
+function terminate(){
+    cmd "quit"
 }
 
 # wait until a key is pressed
