@@ -45,16 +45,38 @@ function vsplit(){
     cmd focus prev
 }
 
-# Move to the next window to the left-down)
+# Move focus the next window to the right or down if in the rightmost window
 function next(){
     cmd "focus" "next"
 }
 
-# Move to the next window to the left-down)
+# Move focus to the previous window to the left or up if in the leftmost window
 function prev(){
     cmd "focus" "prev"
 }
 
+# move focus to top-left window
+function top(){
+    cmd "focus" "top"
+}
+
+# changes focus to the first window with the given title
+function focus(){
+    local target=$1
+    local initial=$(screen -S $SCREEN_SESSION -Q -X number)
+    local name=$(screen -S $SCREEN_SESSION -Q -X title)
+    while [[ "$name" != "$target" ]]; do
+        # move next
+        screen -S $SCREEN_SESSION -X focus next
+        current=$(screen -S $SCREEN_SESSION -Q -X number)
+        # check if we have turned to the initial window, then it was not found
+        if [[ "$current" == "$initial" ]]; then
+            return 1
+        fi
+        name=$(screen -S $SCREEN_SESSION -Q -X title)
+    done 
+    return 0
+}  
 
 # Create a grid of windows. 
 # grid <<EOF
