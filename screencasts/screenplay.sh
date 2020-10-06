@@ -158,6 +158,9 @@ function detach(){
 
 # terminate screen session
 function terminate(){
+    cmd "focus" "top"
+    cmd "only"
+    clean
     cmd "quit"
 }
 
