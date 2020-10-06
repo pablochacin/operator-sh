@@ -133,6 +133,12 @@ function title(){
     cmd "title" "$1"
 }
 
+
+# change the heigh of the current window
+function resize(){
+    cmd "resize" $1
+}
+
 # remove current screen
 function remove(){
     cmd "kill"
