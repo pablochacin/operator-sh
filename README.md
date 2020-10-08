@@ -445,6 +445,33 @@ EVENT_OBJECT_STATUS_STARTTIME="2020-09-02T14:18:46Z"
 ```
 </details>
 
+## Known Issues
+
+### Labels names cannot be reconstructed from environent variable names 
+
+Labels usually have the form <fqdn>/<label>. For example:
+
+```
+  spec:
+    selector:
+      matchLabels:
+        node.kubernetes.io/instance-type=m3.medium
+```
+
+Due to the restrictions on valid variable names in bash, when flattening the object to environment variables, the labels is transformed to:
+
+```
+EVENT_OBJECT_SPEC_SELECTOR_MATCHLABELS_NODE_KUBERNETES_IO_INSTANCE_TYPE=m3.medium
+```
+
+From variable name is not possible to reconstruct the original label name unless some assumptions are made regarding the name, such as the use of all lowercase, but this is not reliable. For instance both `instance-type` and `instance_type` would be translated to `INSTANCE_TYPE`.
+## Road Map
+
+- [ ] Provide examples
+- [ ] Create image and k8s manifests for deploying operators
+- [x] Implement e2e tests
+- [ ] Implement a library for managing CRDs (create, update)
+
 ## Development
 
 ### Testing
@@ -566,13 +593,6 @@ after_each "kubectl delete deployment --all --wait=true" --ignore-errors
 
 test_runner
 ```
-
-## Road Map
-
-- [ ] Provide examples
-- [ ] Create image and k8s manifests for deploying operators
-- [x] Implement e2e tests
-- [ ] Implement a library for managing CRDs (create, update)
 
 ## Inspired by 
 
