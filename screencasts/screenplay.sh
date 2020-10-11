@@ -1,10 +1,5 @@
 # screen automation library
 
-# Send text to sceen followed by <enter>
-function send(){
-	screen -S $SCREEN_SESSION -X stuff "$1$(echo -ne '\r')"
-}
-
 # types words one at a time with a delay between them
 function type(){
     for w in $1; do
@@ -145,7 +140,7 @@ function remove(){
 # clear screen after waiting $1 seconds
 function clean(){
 	pause ${1:-0}
-	send "clear"
+	type "clear"
 }
 
 # pause the script for the given time in seconds (fractions are allowed).
