@@ -26,12 +26,12 @@ type "kubectl cluster-info --context kind-demo"
 clean 3
 type "# Now, let's start the operator for monitoring pod events"
 type "# and the event hooks from examples/pods."
-sleep 3
+pause 3
 type "# Notice that we will filter the details of the event, to make it"
 type "# easier to follow the output in the log."
-sleep 3
+pause 3
 type "./operator.sh -o pod --hooks examples/pods -l /tmp/operator.log -L WARNING --filter-spec --filter-status &"
-sleep 1
+pause 1
 next
 type "# Now let's see watch the content of the log"
 type "tail -f /tmp/operator.log"
@@ -42,17 +42,17 @@ type "kubectl create deployment nginx --image nginx"
 clean 10 
 type "# Let's create another pod by increasing the number of replicas."
 type "# We should see another event in the log"
-sleep 2
+pause 2
 next
 cmd "clear"
 top
 type "kubectl scale deployment nginx --replicas 2"
 clean 5
 type "# Before we leave, let's delete the cluster"
-sleep 1
+pause 1
 type "kind delete cluster --name demo"
 clean 3
 type "# Thanks for your attention. "
 type "# If interested in knowing more, please visit http://github.com/pablochacin/operator-sh"
-sleep 5
+pause 5
 terminate

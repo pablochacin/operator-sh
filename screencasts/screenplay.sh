@@ -9,7 +9,7 @@ function send(){
 function type(){
     for w in $1; do
 	    screen -S $SCREEN_SESSION -X stuff "$w$(echo -ne ' ')"
-        sleep ${2:-0.1}
+        pause ${2:-0.1}
     done
     # remove last space and add <enter>
     screen -S $SCREEN_SESSION -X stuff "$(echo -ne '\b\r')"
@@ -148,8 +148,17 @@ function remove(){
 
 # clear screen after waiting $1 seconds
 function clean(){
-	sleep ${1:-0}
+	pause ${1:-0}
 	send "clear"
+}
+
+# pause the script for the given time in seconds (fractions are allowed).
+# Pause time defaults to 0 (no pause)
+# If PLAY_SPEED is specified, it is applied to scale
+# the pause time.
+function pause(){
+    local PAUSE_TIME=$(bc <<< "${1:-0}*$PLAY_SPEED")
+    sleep $PAUSE_TIME
 }
 
 # connect to existing session
@@ -178,3 +187,5 @@ function wait_key(){
 # session name
 SCREEN_SESSION=
 
+# play speed. Multiplies any pause time
+PLAY_SPEED=${PLAY_SPEED:-1}
