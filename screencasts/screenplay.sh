@@ -85,7 +85,6 @@ function focus(){
 # windows 3
 #EOF
 function grid(){
-    set -x
     local NUM_ROWS=
     local ROWS=
     local NUM_COLUMNS=
@@ -93,7 +92,6 @@ function grid(){
 
     # read rows from stdin
     mapfile ROWS
-    echo "${ROWS[@]}"
     NUM_ROWS=${#ROWS[@]}
 
     # create rows (there's one initial row)
@@ -110,7 +108,6 @@ function grid(){
     for R in $(seq 0 $(($NUM_ROWS-1))); do
         IFS='|' read -r -a COLUMNS <<< "${ROWS[$R]}"
         NUM_COLUMNS=${#COLUMNS[@]}
-        echo "$R $NUM_COLUMNS ${COLUMNS[@]}"
 
         #set title of first column
         cmd "title" "${COLUMNS[0]}"
@@ -125,7 +122,6 @@ function grid(){
         #move to next row
         cmd "focus" "next"
     done
-    set +x
 }
 
 # sets current window's title
