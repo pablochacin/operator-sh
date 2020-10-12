@@ -1,0 +1,33 @@
+#!/bin/bash
+source lib/log.sh
+
+source "$(dirname ${BASH_SOURCE[0]})/manifests.sh"
+
+LOG_LEVEL=$LOG_LEVEL_DEBUG
+
+log_info "Processing event ${EVENT_TYPE} for object ${EVENT_OBJECT_KIND}/${EVENT_OBJECT_METADATA_NAME}"
+
+# only process pvc for local-storage class
+STORAGE_CLASS=$EVENT_OBJECT_SPEC_STORAGECLASSNAME
+if [[ "$STORAGE_CLASS" != "local-storage" ]]; then
+   log_info "Ignoring event for storage class $STORAGE_CLASS"
+   exit
+fi
+
+# name of the claim (used for binding it)
+PVC_NAME=$EVENT_OBJECT_METADATA_NAME
+PVC_NAMESPACE=$EVENT_OBJECT_METADATA_NAMESPACE
+
+# node on which the volume must be allocated
+NODE_SELECTOR=$EVENT_OBJECT_SPEC_SELECTOR_MATCHLABELS_KUBERNETES_IO_HOSTNAME
+
+# volume size
+VOL_SIZE=$EVENT_OBJECT_SPEC_RESOURCES_REQUESTS_STORAGE
+
+JOB_CMD="mkdir"
+
+exec 2>> $LOG_FILE
+exec 1>> $LOG_FILE
+
+job_template | kubectl apply -f -
+pv_template | kubectl apply -f -
