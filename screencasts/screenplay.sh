@@ -2,6 +2,9 @@
 
 # types words one at a time with a delay between them
 function type(){
+    # FIXME: force pause before typing to prevent sending text before the
+    # screen is ready after a change (clean, split, change of focus)
+    sleep 0.5
     for w in $1; do
 	    screen -S $SCREEN_SESSION -X stuff "$w$(echo -ne ' ')"
         pause ${2:-0.1}
