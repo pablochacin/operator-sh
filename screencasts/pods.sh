@@ -1,5 +1,5 @@
-
 #!/bin/bash
+
 source screencasts/screenplay.sh
 
 connect "pods-demo"

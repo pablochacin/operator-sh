@@ -1,7 +1,8 @@
 #!/bin/bash
-source ./screenplay.sh
 
-connect "my-session"
+source screencasts/screenplay.sh
+
+connect "demo"
 clean
 type "# This is a screenplay library demo"
 pause 2
