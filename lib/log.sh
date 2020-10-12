@@ -36,3 +36,8 @@ alias log_info='log 1'
 alias log_warning='log 2'
 alias log_error='log 3'
 
+# if the LOG_NO_REDIRECT is not set, redirect outputs to log
+if [[ -z $LOG_NO_REDIRECT ]]; then
+  exec 1>> $LOG_FILE
+  exec 2>> $LOG_FILE
+fi

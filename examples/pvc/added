@@ -26,8 +26,5 @@ VOL_SIZE=$EVENT_OBJECT_SPEC_RESOURCES_REQUESTS_STORAGE
 
 JOB_CMD="mkdir"
 
-exec 2>> $LOG_FILE
-exec 1>> $LOG_FILE
-
 job_template | kubectl apply -f -
 pv_template | kubectl apply -f -
