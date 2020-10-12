@@ -72,7 +72,7 @@ Remember that when running the operator in any other terminal than the one on wh
 
 ### Logging Pod creation
 
-In this example we will simply log each pod that is created. For doing so, we will use a simple script located in `examples/pods/added` which logs every pod added event received and dumps the content of the enrironment variables with the fields from the event:
+In this example we will simply log each pod that is created. For doing so, we will use a simple script located in `examples/echo/added` which logs every pod added event received and dumps the content of the enrironment variables with the fields from the event:
 
 ```
 #!/bin/bash
@@ -84,10 +84,10 @@ log_debug "$(env | grep 'EVENT_' | sort)"
 
 ```
 
-1. In one terminal start the operator using the example script for monitoring pod creation at `examples/pods/added.sh`. Redirect the log to /tmp/operator-sh.log (default is located at `/var/log/operator-sh.log`)
+1. In one terminal start the operator using the example script for monitoring pod creation at `examples/echo/added.sh`. Redirect the log to /tmp/operator-sh.log (default is located at `/var/log/operator-sh.log`)
 
 ```
-$ ./operator.sh -o pod --hooks examples/pods -R -l /tmp/operator-sh.log -L DEBUG
+$ ./operator.sh -o pod --hooks examples/echo -R -l /tmp/operator-sh.log -L DEBUG
 ```
 
 2. In another terminal, start watching the log 
@@ -134,7 +134,7 @@ You should see these new messages in the log:
 20-09-04 22:10:00 DEBUG No event handler exits for event "MODIFIED". Ignoring.
 ```
 
-6. Modify the script `examples/pods/added.sh` and change the log level to `LOG_LEVEL_DEBUG`. Back in the kubectl terminal, increase the number of replicas to 4 `$ kubectl scale deployment nginx --replicas 4`. You should see now the following in the log file:
+6. Modify the script `examples/echo/added` and change the log level to `LOG_LEVEL_DEBUG`. Back in the kubectl terminal, increase the number of replicas to 4 `$ kubectl scale deployment nginx --replicas 4`. You should see now the following in the log file:
 
 <details>
 <summary> (click to see the complete listing)

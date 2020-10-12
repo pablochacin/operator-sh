@@ -14,7 +14,7 @@ type "# be used for monitoring pod events."
 clean 3
 type "# Let's take a look at the hook. It is very simple, just dumps all"
 type "# environment variables to stdout"
-type "cat examples/pods/added"
+type "cat examples/echo/added"
 clean 10
 type "# So let's see how this works.."
 clean 2
@@ -25,12 +25,12 @@ clean
 type "kubectl cluster-info --context kind-demo"
 clean 3
 type "# Now, let's start the operator for monitoring pod events"
-type "# and the event hooks from examples/pods."
+type "# and the event hooks from examples/echo."
 pause 3
 type "# Notice that we will filter the details of the event, to make it"
 type "# easier to follow the output in the log."
 pause 3
-type "./operator.sh -o pod --hooks examples/pods -l /tmp/operator.log -L WARNING --filter-spec --filter-status &"
+type "./operator.sh -o pod --hooks examples/echo -l /tmp/operator.log -L WARNING --filter-spec --filter-status &"
 pause 1
 next
 type "# Now let's see watch the content of the log"
