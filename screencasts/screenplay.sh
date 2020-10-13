@@ -1,5 +1,16 @@
 # screen automation library
 
+# send raw sequence of characters without trailing cr and without
+# pause
+function send(){
+    screen -S $SCREEN_SESSION -X stuff "$1"
+}
+
+# send a cr to mimic an <enter>
+function cr(){
+    screen -S $SCREEN_SESSION -X stuff "$(echo '\r')"
+}
+
 # types words one at a time with a delay between them
 function type(){
     # FIXME: force pause before typing to prevent sending text before the
