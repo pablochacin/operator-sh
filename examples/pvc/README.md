@@ -3,6 +3,8 @@
 This example implements an operator that allocates persistent volumes on the node
 specified by a persistent volume claim.  
 
+The implementation was inspired by [“Kubernetes Local Persistent Volumes – A Step-by-Step Tutorial](https://vocon-it.com/2018/12/20/kubernetes-local-persistent-volumes)
+
 ## PVC added: volume allocation
 
 The `added` hook filters claims not associated with the `local-storage` class:
