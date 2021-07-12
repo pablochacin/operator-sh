@@ -140,7 +140,7 @@ and invoke the hooks from the `examples/pvc`
 
 ```
 $ ./operator.sh -o pvc -h examples/pvc -l /tmp/operator-sh.log -L DEBUG
-`` 
+```
 
 4. In a third terminal, watch the operator's log
 ```
