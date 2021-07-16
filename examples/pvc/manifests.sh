@@ -12,7 +12,7 @@ spec:
     - ReadWriteOnce 
   storageClassName: local-storage
   local:
-    path: "/mnt/local-volumes"
+    path: "/var/local-volumes/${PVC_NAME}"
   claimRef:
     name: ${PVC_NAME}
     namespace: ${PVC_NAMESPACE}
@@ -43,11 +43,11 @@ spec:
         command: ["$JOB_CMD", "/var/local-volumes/$PVC_NAME"]
         volumeMounts:
         - name: local-volumes
-          mountPath: "/var/local-volumes"
+          mountPath: "/var"
       volumes:
          - name: local-volumes
            hostPath:
-             path: /mnt/local-volumes
+             path: "/var"
              type: Directory
       nodeSelector:
          kubernetes.io/hostname: ${NODE_SELECTOR}
