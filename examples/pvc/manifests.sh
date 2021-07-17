@@ -40,7 +40,7 @@ spec:
       containers:
       - image: busybox
         name: busybox
-        command: ["$JOB_CMD", "/var/local-volumes/$PVC_NAME"]
+        command: ["$JOB_CMD", "$JOB_CMD_ARGS", "/var/local-volumes/$PVC_NAME"]
         volumeMounts:
         - name: local-volumes
           mountPath: "/var"
