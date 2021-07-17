@@ -24,7 +24,8 @@ NODE_SELECTOR=$EVENT_OBJECT_SPEC_SELECTOR_MATCHLABELS_KUBERNETES_IO_HOSTNAME
 # volume size
 VOL_SIZE=$EVENT_OBJECT_SPEC_RESOURCES_REQUESTS_STORAGE
 
-JOB_CMD="mkdir -p"
+JOB_CMD="mkdir"
+JOB_CMD_ARGS="-p"
 
 job_template | kubectl apply -f -
 pv_template | kubectl apply -f -
