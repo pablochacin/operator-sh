@@ -7,12 +7,12 @@ The implementation was inspired by [“Kubernetes Local Persistent Volumes – A
 
 ## PVC added: volume allocation
 
-The `added` hook filters claims not associated with the `local-storage` class:
+The `added` hook filters claims not associated with the storage class defined in the STORAGE_CLASS environment variable, which defaults to `local-storage`:
 
 ```
-STORAGE_CLASS=$EVENT_OBJECT_SPEC_STORAGECLASSNAME
-if [[ "$STORAGE_CLASS" != "local-storage" ]]; then
-   log_info "Ignoring event for storage class $STORAGE_CLASS"
+VPC_STORAGE_CLASS=$EVENT_OBJECT_SPEC_STORAGECLASSNAME
+if [[ "$STORAGE_CLASS" != "$STORAGE_CLASS" ]]; then
+   log_info "Ignoring event for storage class $VPC_STORAGE_CLASS"
    exit
 fi
 ```
@@ -45,7 +45,7 @@ spec:
       containers:
       - image: busybox
         name: busybox
-        command: ["$JOB_CMD", "/var/local-volumes/$PVC_NAME"]
+        command: ["$JOB_CMD", "$CMD_ARGS", "/var/local-volumes/$PVC_NAME"]
         volumeMounts:
         - name: local-volumes
           mountPath: "/var/local-volumes"
@@ -72,7 +72,7 @@ spec:
     storage: $VOL_SIZE 
   accessModes:
     - ReadWriteOnce 
-  storageClassName: local-storage
+  storageClassName: $STORAGE_CLASSS
   local:
     path: "/mnt/local-volumes"
   claimRef:

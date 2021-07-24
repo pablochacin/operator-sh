@@ -10,7 +10,7 @@ spec:
     storage: $VOL_SIZE 
   accessModes:
     - ReadWriteOnce 
-  storageClassName: local-storage
+  storageClassName: "${STORAGE_CLASS}" 
   local:
     path: "/var/local-volumes/${PVC_NAME}"
   claimRef:

@@ -7,10 +7,12 @@ LOG_LEVEL=$LOG_LEVEL_DEBUG
 
 log_info "Processing event ${EVENT_TYPE} for object ${EVENT_OBJECT_KIND}/${EVENT_OBJECT_METADATA_NAME}"
 
-# only process pvc for local-storage class
-STORAGE_CLASS=$EVENT_OBJECT_SPEC_STORAGECLASSNAME
-if [[ "$STORAGE_CLASS" != "local-storage" ]]; then
-   log_info "Ignoring event for storage class $STORAGE_CLASS"
+STORAGE_CLASS=${STORAGE_CLASS:-local-storage}
+
+# only process pvc for selected storage class
+PVC_STORAGE_CLASS=$EVENT_OBJECT_SPEC_STORAGECLASSNAME
+if [[ "$PVC_STORAGE_CLASS" != "$STORAGE_CLASS" ]]; then
+   log_info "Ignoring event for storage class $PVC_STORAGE_CLASS"
    exit
 fi
 
