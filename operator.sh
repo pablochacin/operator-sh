@@ -52,6 +52,11 @@ function handle_event(){
     # Pass kubeconfig to allow handles to interact with the cluster using kubectl
     export "KUBECONFIG=$KUBECONFIG"
 
+    # set env for hook
+    if [[ ! -z $HOOK_ENV ]]; then
+        export ${HOOK_ENV/,/ }
+    fi
+
     # execute handler
     exec $HANDLER
     )
@@ -108,6 +113,7 @@ cat <<EOF
     -c,--changes-only: do not received ADDED events for existing objects
     --context: kubeconfig context
     -e,--log-events: log received events to log file
+    -E,--hook-env: environment variables for hooks
     -h,--hooks: path to hooks. Default is ./hooks
     --label-selector: watch objects that match the given label(s).
       Supports '=', '==', and '!='.(e.g. -l key1=value1,key2=value2)
@@ -131,6 +137,7 @@ EOF
 function parse_args(){
     CHANGES_ONLY=false
     EVENT_QUEUE="/tmp/k8s-event-queue"
+    HOOK_ENV=
     RESET_QUEUE=false
     RESET_LOG=false
     KUBECONFIG=$KUBECONFIG
@@ -156,6 +163,10 @@ function parse_args(){
                 ;;
             -e|--log-events)
                 LOG_EVENTS=true
+                ;;
+            -E|--hook-env)
+                HOOK_ENV=$2	
+                shift
                 ;;
             -h|--hooks)
                 # ensure to remove the last '/' if any 
@@ -225,6 +236,7 @@ function parse_args(){
     echo "OBJECT_TYPE=$OBJECT_TYPE"
     echo "CHANGES_ONLY=$CHANGES_ONLY"
     echo "EVENT_QUEUE=$EVENT_QUEUE"
+    echo "HOOK_ENV=$HOOK_ENV"
     echo "RESET_QUEUE=$RESET_QUEUE"
     echo "RESET_LOG=$RESET_LOG"
     echo "NAMESPACE=$NAMESPACE"

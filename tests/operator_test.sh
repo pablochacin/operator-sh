@@ -125,6 +125,14 @@ function test_label_selector_is_parsed(){
     assert_output_contains "LABEL_SELECTOR=\"label=value\""
 }
 
+# Test hook environment is parsed
+function test_hook_env_is_parsed(){
+   ARGS="arg1=value1,arg2=value2"
+   test_cmd "parse_args -o OBJECT -E $ARGS"
+   assert_command_rc 0
+   assert_output_contains "HOOK_ENV=$ARGS"
+}
+
 # Test default queue is created
 function test_default_queue_is_created(){
     eval $(parse_args -o OBJECT)
@@ -144,6 +152,7 @@ function test_named_queue_is_created(){
     assert_file_exists $QUEUE_NAME
     rm -f $QUEUE_NAME
 }
+
 
 test_wait 0
 test_runner $@
