@@ -11,6 +11,7 @@ spec:
   accessModes:
     - ReadWriteOnce 
   storageClassName: "${STORAGE_CLASS}" 
+  persistentVolumeReclaimPolicy: "${RECLAIM_POLICY}"
   local:
     path: "/var/local-volumes/${PVC_NAME}"
   claimRef:

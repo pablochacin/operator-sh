@@ -196,6 +196,10 @@ NAME                 STATUS   VOLUME                            CAPACITY   ACCES
 localstorage-claim   Bound    localstorage-claim-kind-worker2   1Gi        RWO            local-storage   3m
 ```
 
+9. The pvc operator supports two environment variables to customize the persistent volume creation:
+* STORAGE_CLASS: storage class of PCV to watch. PVCs with other storage classes will be ignored. Default to `local-storage`.
+* RECLAIM_POLICY: reclaim policy for the PV. Defaults to `delete`.
+
 ## Volume deletion
 
 TBI

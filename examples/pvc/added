@@ -8,6 +8,7 @@ LOG_LEVEL=$LOG_LEVEL_DEBUG
 log_info "Processing event ${EVENT_TYPE} for object ${EVENT_OBJECT_KIND}/${EVENT_OBJECT_METADATA_NAME}"
 
 STORAGE_CLASS=${STORAGE_CLASS:-local-storage}
+RECLAIM_POLICY=${RECLAIM_POLICY:-Retain}
 
 # only process pvc for selected storage class
 PVC_STORAGE_CLASS=$EVENT_OBJECT_SPEC_STORAGECLASSNAME
