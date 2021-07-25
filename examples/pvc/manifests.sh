@@ -4,7 +4,7 @@ cat <<EOF
 kind: PersistentVolume
 apiVersion: v1
 metadata:
-  name: "${PVC_NAME}-${NODE_SELECTOR}" 
+  name: "${PVC_NAME}-${NODE_SELECTOR}"
 spec:
   capacity:
     storage: $VOL_SIZE 
@@ -34,7 +34,7 @@ cat <<EOF
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: ${PVC_NAME}
+  name: ${JOB_NAME}
 spec:
   template:
     spec:

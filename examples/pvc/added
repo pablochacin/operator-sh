@@ -27,8 +27,16 @@ NODE_SELECTOR=$EVENT_OBJECT_SPEC_SELECTOR_MATCHLABELS_KUBERNETES_IO_HOSTNAME
 # volume size
 VOL_SIZE=$EVENT_OBJECT_SPEC_RESOURCES_REQUESTS_STORAGE
 
+JOB_NAME="${PVC_NAME}-create"
 JOB_CMD="mkdir"
 JOB_CMD_ARGS="-p"
+JOB_TIMEOUT=${JOB_TIMEOUT:-30s}
 
 job_template | kubectl apply -f -
-pv_template | kubectl apply -f -
+kubectl wait  --for=condition=Complete=true --timeout=${JOB_TIMEOUT} job ${JOB_NAME}
+if [[ $? -eq 0 ]]; then 
+    kubectl delete job ${JOB_NAME}
+    pv_template | kubectl apply -f -
+else
+    log_error "job ${JOB_NAME} failed to complete"
+fi
