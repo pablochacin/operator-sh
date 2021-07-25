@@ -17,28 +17,30 @@ if [[ "$PVC_STORAGE_CLASS" != "$STORAGE_CLASS" ]]; then
    exit
 fi
 
+# only process delete if reclaim policy is delete
+if [[ "$RECLAIM_POLICY" != "Delete" ]]; then
+  log_info "Ignoring delete event for reclaim policy $RECLAIM_POLICY"
+  exit
+fi
+
 # name of the claim (used for binding it)
 PVC_NAME=$EVENT_OBJECT_METADATA_NAME
-PVC_NAMESPACE=$EVENT_OBJECT_METADATA_NAMESPACE
 
 # node on which the volume must be allocated
 NODE_SELECTOR=$EVENT_OBJECT_SPEC_SELECTOR_MATCHLABELS_KUBERNETES_IO_HOSTNAME
 
 PV_NAME="${PVC_NAME}-${NODE_SELECTOR}"
 
-# volume size
-VOL_SIZE=$EVENT_OBJECT_SPEC_RESOURCES_REQUESTS_STORAGE
-
-JOB_NAME="${PVC_NAME}-create"
-JOB_CMD="mkdir"
-JOB_CMD_ARGS="-p"
+JOB_NAME="${PVC_NAME}-delete"
+JOB_CMD="rm"
+JOB_CMD_ARGS="-rf"
 JOB_TIMEOUT=${JOB_TIMEOUT:-30s}
 
 job_template | kubectl apply -f -
 kubectl wait  --for=condition=Complete=true --timeout=${JOB_TIMEOUT} job ${JOB_NAME}
 if [[ $? -eq 0 ]]; then 
     kubectl delete job ${JOB_NAME}
-    pv_template | kubectl apply -f -
+    kubectl delete pv $PV_NAME
 else
     log_error "job ${JOB_NAME} failed to complete"
 fi

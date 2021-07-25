@@ -198,8 +198,8 @@ localstorage-claim   Bound    localstorage-claim-kind-worker2   1Gi        RWO  
 
 9. The pvc operator supports two environment variables to customize the persistent volume creation:
 * STORAGE_CLASS: storage class of PCV to watch. PVCs with other storage classes will be ignored. Default to `local-storage`.
-* RECLAIM_POLICY: reclaim policy for the PV. Defaults to `delete`.
+* RECLAIM_POLICY: reclaim policy for the PV. Defaults to `Retain`.
 
 ## Volume deletion
 
-TBI
+If RECLAIM_POLICY is defined as "Delete", when a PVC is deleted, the pv and its corresponding backing storage are automatically deleted.

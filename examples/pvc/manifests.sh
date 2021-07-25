@@ -4,7 +4,7 @@ cat <<EOF
 kind: PersistentVolume
 apiVersion: v1
 metadata:
-  name: "${PVC_NAME}-${NODE_SELECTOR}"
+  name: "${PV_NAME}"
 spec:
   capacity:
     storage: $VOL_SIZE 
